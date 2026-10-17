@@ -74,17 +74,19 @@ export function useAssetEditor<T extends AssetType>(assetId: string | null, type
     };
   }, [assetId, type, reloadToken]);
 
-  const save = React.useCallback(async () => {
+  const inflight = React.useRef<Promise<void> | null>(null);
+  const save = React.useCallback(async (): Promise<void> => {
     if (timer.current) {
       clearTimeout(timer.current);
       timer.current = null;
     }
+    // Wait for any save already running, so callers that `await save()` know everything is on disk
+    // (and a stale in-flight save can't land after work that depends on it).
+    while (inflight.current) await inflight.current.catch(() => undefined);
     const id = idRef.current;
     if (!id || !ref.current.dirty || !ref.current.data) return;
-    if (ref.current.saving) {
-      timer.current = setTimeout(() => void save(), 250);
-      return;
-    }
+    let done!: () => void;
+    inflight.current = new Promise<void>((r) => (done = r));
     ref.current.saving = true;
     ref.current.dirty = false;
     setSaveState("saving");
@@ -105,6 +107,8 @@ export function useAssetEditor<T extends AssetType>(assetId: string | null, type
       toast.error(errorMessage(err));
     } finally {
       ref.current.saving = false;
+      inflight.current = null;
+      done();
     }
   }, []);
 

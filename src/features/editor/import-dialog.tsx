@@ -160,10 +160,10 @@ export function ImportDialog({ open, onOpenChange, project, initialFile }: { ope
         {preview && split && (
           <>
             <div className="grid max-h-[68dvh] min-h-0 lg:grid-cols-[340px_1fr]">
-              <div className="plr-scroll grid min-w-0 content-start gap-4 overflow-y-auto overflow-x-hidden border-b p-5 lg:border-b-0 lg:border-r">
+              <div className="plr-scroll grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-4 overflow-y-auto overflow-x-hidden border-b p-5 lg:border-b-0 lg:border-r">
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <Badge variant="secondary">
-                    <FileText /> {preview.fileName}
+                  <Badge variant="secondary" className="max-w-full" title={preview.fileName}>
+                    <FileText /> <span className="truncate">{preview.fileName}</span>
                   </Badge>
                   <Badge variant="outline">{preview.format.toUpperCase()}</Badge>
                   {preview.pageCount != null && <Badge variant="outline">{preview.pageCount} pages</Badge>}
