@@ -8,7 +8,7 @@ import type { Project } from "@/lib/data/types";
 import type { RebrandProposal, RebrandSessionData } from "@/lib/models/content";
 import type { Chapter } from "@/lib/models/document";
 import { useAssets, useBrandKits } from "@/lib/data/hooks";
-import { createAsset } from "@/lib/services/assets";
+import { createAsset, getAsset } from "@/lib/services/assets";
 import { fillerRules, proposalFromAI, proposeWithRules, rebrandBrief, saveRebrand, suggestRules } from "@/lib/services/rebrand";
 import { runAITask, useAIStatus, AIError } from "@/lib/ai/client";
 import { countMatches } from "@/lib/doc/replace";
@@ -386,8 +386,8 @@ function RebrandEditor({ editor, project }: { editor: AssetEditor<"rebrand-sessi
               <div className="flex items-center justify-between px-2 py-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Chapters</span>
                 <div className="flex gap-1">
-                  <Button size="xs" variant="ghost" disabled={!counts.generated} onClick={() => editor.update((d) => ({ ...d, proposals: d.proposals.map((p) => ({ ...p, status: "accepted" })) }))}>
-                    <CheckCheck /> All
+                  <Button size="xs" variant="ghost" disabled={!counts.generated} onClick={() => editor.update((d) => ({ ...d, proposals: d.proposals.map((p) => ({ ...p, status: "accepted" })) }))} data-testid="rb-accept-all">
+                    <CheckCheck /> Accept all
                   </Button>
                 </div>
               </div>
@@ -509,7 +509,10 @@ function RebrandEditor({ editor, project }: { editor: AssetEditor<"rebrand-sessi
                   setSaving(true);
                   try {
                     await editor.save();
-                    const r = await saveRebrand(editor.asset!, saveOpts);
+                    // Use the stored session (not possibly-stale component state) so accepted proposals are included.
+                    const fresh = await getAsset<"rebrand-session">(editor.asset!.id);
+                    if (!fresh) throw new Error("This rebrand session no longer exists.");
+                    const r = await saveRebrand(fresh, saveOpts);
                     editor.reload();
                     toast.success(`Saved ${plural(r.accepted, "rebranded chapter")}`, { action: { label: "Open", onClick: () => window.location.assign(`/editor?id=${r.documentId}`) } });
                   } catch (e) {

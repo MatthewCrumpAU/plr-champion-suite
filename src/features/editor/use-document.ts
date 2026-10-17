@@ -79,20 +79,20 @@ export function useDocument(assetId: string) {
     return { ...a.data, ...m, chapters: ref.current.chapters };
   }, []);
 
+  const inflight = React.useRef<Promise<void> | null>(null);
   const save = React.useCallback(async (): Promise<void> => {
     if (timer.current) {
       clearTimeout(timer.current);
       timer.current = null;
     }
+    // Wait for a save that is already running so `await save()` always means "everything is stored".
+    while (inflight.current) await inflight.current.catch(() => undefined);
     const data = buildData();
     const a = assetRef.current;
     if (!data || !a) return;
     if (!ref.current.dirty) return;
-    if (ref.current.saving) {
-      // Another save is running; try again shortly so the latest edits are written.
-      timer.current = setTimeout(() => void save(), 250);
-      return;
-    }
+    let done!: () => void;
+    inflight.current = new Promise<void>((r) => (done = r));
     ref.current.saving = true;
     ref.current.dirty = false;
     setSaveState("saving");
@@ -116,6 +116,8 @@ export function useDocument(assetId: string) {
       toast.error(errorMessage(err));
     } finally {
       ref.current.saving = false;
+      inflight.current = null;
+      done();
     }
   }, [buildData]);
 
