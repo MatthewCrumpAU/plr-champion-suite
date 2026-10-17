@@ -20,9 +20,11 @@ import { useConfirm } from "@/components/ui/confirm";
 import { FileDrop } from "@/components/common/file-drop";
 import { errorMessage, timeAgo } from "@/lib/utils";
 import { ImportDialog } from "./import-dialog";
+import { useToolHref } from "@/components/common/tool-links";
 
 export function EditorHome({ project }: { project: Project }) {
   const router = useRouter();
+  const toolHref = useToolHref();
   const confirm = useConfirm();
   const { data: docs, loading } = useAssets(project.id, "document");
   const [importOpen, setImportOpen] = React.useState(false);
@@ -42,7 +44,7 @@ export function EditorHome({ project }: { project: Project }) {
     setCreating(true);
     try {
       const a = await createDocument(project.id, { title: "Untitled document" });
-      router.push(`/editor?id=${a.id}`);
+      router.push(toolHref(`/editor?id=${a.id}`));
     } catch (e) {
       toast.error(errorMessage(e));
       setCreating(false);
@@ -87,7 +89,7 @@ export function EditorHome({ project }: { project: Project }) {
             const isMain = project.mainDocumentId === d.id;
             return (
               <Card key={d.id} className="group relative flex flex-col p-4 transition hover:border-primary/40 hover:shadow-md">
-                <Link href={`/editor?id=${d.id}`} className="absolute inset-0 rounded-xl" aria-label={`Open ${d.title}`} />
+                <Link href={toolHref(`/editor?id=${d.id}`)} className="absolute inset-0 rounded-xl" aria-label={`Open ${d.title}`} />
                 <div className="flex items-start gap-3">
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
                     <FileText className="size-5" />

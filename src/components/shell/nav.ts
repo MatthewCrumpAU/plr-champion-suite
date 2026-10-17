@@ -25,6 +25,8 @@ import {
   FolderKanban,
   Download,
   Settings,
+  Crown,
+  LayoutGrid,
   type LucideIcon,
 } from "lucide-react";
 
@@ -99,6 +101,14 @@ export const NAV: NavSection[] = [
       { label: "Funnel Planner", href: "/funnels", icon: Workflow, description: "Drag-and-drop funnel with projections" },
       { label: "Launch Planner", href: "/launch", icon: Rocket, description: "Tasks, checklists and launch calendar" },
       { label: "Product Portfolio", href: "/portfolio", icon: BriefcaseBusiness, description: "Every product you've created" },
+    ],
+  },
+  {
+    id: "memberships",
+    title: "Memberships",
+    items: [
+      { label: "PLR Champion Members", href: "/m/plr-champion", icon: Crown, description: "Member library, downloads, training and tools" },
+      { label: "Membership Admin", href: "/m/plr-champion/admin", icon: LayoutGrid, description: "Upload products, categories and monthly releases" },
     ],
   },
   {

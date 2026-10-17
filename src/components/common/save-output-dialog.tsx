@@ -15,6 +15,7 @@ import { Checkbox, Field, Input, NativeSelect } from "@/components/ui/primitives
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/overlays";
 import { useConfirm } from "@/components/ui/confirm";
 import { cn, errorMessage } from "@/lib/utils";
+import { useToolHref } from "@/components/common/tool-links";
 
 /** Save generated or drafted content as a new document, or into an existing one. */
 export function SaveOutputDialog({
@@ -37,6 +38,7 @@ export function SaveOutputDialog({
   onSaved?: (documentId: string) => void;
 }) {
   const router = useRouter();
+  const toolHref = useToolHref();
   const confirm = useConfirm();
   const { data: docs } = useAssets(project.id, "document");
   const [target, setTarget] = React.useState<"new" | "existing">("new");
@@ -68,7 +70,7 @@ export function SaveOutputDialog({
       if (target === "new") {
         const chapters = splitHeadings ? splitIntoChapters(content, "auto").chapters : [{ title: title || "Chapter 1", content }];
         const a = await createDocument(project.id, { title: title.trim() || defaultTitle, chapters, role, format });
-        toast.success("Saved as a new document", { action: { label: "Open", onClick: () => router.push(`/editor?id=${a.id}`) } });
+        toast.success("Saved as a new document", { action: { label: "Open", onClick: () => router.push(toolHref(`/editor?id=${a.id}`)) } });
         onSaved?.(a.id);
       } else {
         if (!doc) throw new Error("Choose a document.");
@@ -80,7 +82,7 @@ export function SaveOutputDialog({
         } else if (mode === "append") m = { kind: "append-to-chapter", chapterId };
         else m = { kind: "new-chapter", afterChapterId: mode === "after" ? chapterId : null };
         await insertIntoDocument(doc.id, { title: title.trim(), doc: content }, m);
-        toast.success(`Saved into “${doc.title}”`, { action: { label: "Open", onClick: () => router.push(`/editor?id=${doc.id}`) } });
+        toast.success(`Saved into “${doc.title}”`, { action: { label: "Open", onClick: () => router.push(toolHref(`/editor?id=${doc.id}`)) } });
         onSaved?.(doc.id);
       }
       onOpenChange(false);

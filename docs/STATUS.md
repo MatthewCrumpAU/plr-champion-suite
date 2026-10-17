@@ -11,7 +11,7 @@ This is the completed / not-completed report the build brief asked for. "Verifie
 - All **22 tools** in the six studios, the Dashboard and the three Workspace pages (Projects, Export Centre, Settings) are built, use one shared project system, save automatically to browser storage, survive a page refresh, and export real files.
 - **Private owner login** (env-var password or hash, signed HttpOnly session cookie, CSRF and origin checks, throttling and lockout) protects every page and API route.
 - **AI is optional.** Every tool works without it. With an Anthropic key, AI runs server-side with streaming, model choice, usage and estimated cost, and approval before anything replaces saved content.
-- **Checks:** type check clean, lint clean (zero warnings), 90 unit tests passing, production build passing, 30 browser end-to-end tests passing (full suite run twice in a row: 60/60). Every tool was also checked at phone width (390 px) for layout overflow.
+- **Checks:** type check clean, lint clean (zero warnings), 111 unit tests passing, production build passing, 45 browser end-to-end tests passing. Every tool and every membership page was also checked at phone width (390 px) for layout overflow.
 
 ---
 
@@ -58,13 +58,21 @@ This is the completed / not-completed report the build brief asked for. "Verifie
 - **Launch Planner:** built-in and custom templates, tasks with dates relative to launch day, milestones, progress, readiness checks that tick themselves from real project assets, .ics calendar, CSV and Markdown export.
 - **Product Portfolio:** every project and product with stage, price, brand and linked assets; search, filters, sorting and duplicate detection; CSV export.
 
+### Ecosystem Phase 2 — PLR Champion membership
+- Member area at `/m/plr-champion` with its own dark-sidebar shell: Dashboard, PLR Product Library, Product Categories, Advanced Search, product preview pages, Download Manager (multi-product ZIPs with licence summaries), My Downloads, Training Centre, Courses & Tutorials (lesson player with progress), Member Resources, Monthly Product Drops, and the PLR Editor, Rebrand Studio, Product Builder and Profit Map embedded in the member area.
+- **Edit in PLR Editor** from any editable library file, respecting the licence.
+- **View as** owner / premium / member / free to check access rules; drafts and scheduled items hidden from members.
+- Membership Admin: products (files, images, licence, publishing, drops, categories), categories, monthly releases (schedule or release now), training, resources, data & backup (ZIP backup/restore, sample content, erase).
+- Original sample library generated on first visit (12 products with real DOCX/PDF files, 4 drops, 6 courses and tutorials, 6 resources). Details: [MEMBERSHIP.md](MEMBERSHIP.md).
+
 ---
 
 ## Not implemented
 
 | Item | Why |
 | --- | --- |
-| PLRforIM / PLR Profit Lab member portals | Excluded until you specifically instruct it. |
+| PLRforIM brand area and PLR Profit Lab | Planned as Phases 3 and 4 of the ecosystem brief. The PLR Champion membership (Phase 2) is built — see [MEMBERSHIP.md](MEMBERSHIP.md). |
+| Member sign-up, subscriptions, payments, cross-brand sign-in | Excluded by the brief for private testing. The account model (per-brand access levels, linked accounts) is prepared for it. |
 | Server or cloud database, multi-device sync | Excluded by the brief (no cloud database). Data lives in one browser; move it with backup/restore. Plan: [DATABASE-MIGRATION.md](DATABASE-MIGRATION.md). |
 | Live keyword metrics (search volume, competition, CPC) | Not fabricated. Import them from your own keyword tool's CSV. A server-side provider interface and API route exist, with no provider bundled. |
 | Live web research inside Niche Research | The tool records your research; AI output is labelled as hypotheses, not market facts. |

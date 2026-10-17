@@ -289,7 +289,7 @@ function DataSection() {
         <p className="flex items-center gap-2 text-sm font-semibold text-red-800">
           <TriangleAlert className="size-4" /> Erase all data in this browser
         </p>
-        <p className="text-xs text-red-900/80">Deletes every project, asset, version, snapshot, brand kit, file and setting stored here. Download a backup first — this cannot be undone.</p>
+        <p className="text-xs text-red-900/80">Deletes every project, asset, version, snapshot, brand kit, file and setting stored here, plus membership libraries. Download a backup first — this cannot be undone.</p>
         <Button
           variant="destructive"
           size="sm"
@@ -297,6 +297,13 @@ function DataSection() {
           onClick={async () => {
             if (!(await confirm({ title: "Erase everything?", description: "All PLR Champion data in this browser will be permanently deleted.", confirmLabel: "Erase everything", destructive: true, typeToConfirm: "ERASE" }))) return;
             await getRepos().clearAll();
+            // Membership libraries live in their own database; erase them too (they re-seed samples on next visit).
+            try {
+              const { getMembershipRepos } = await import("@/lib/membership/db");
+              await getMembershipRepos().clearAll();
+            } catch {
+              /* membership area never opened in this browser */
+            }
             // Don't re-create the sample project automatically after an intentional erase.
             await getRepos().meta.set(SAMPLE_FLAG, true);
             setActiveProjectId(null);

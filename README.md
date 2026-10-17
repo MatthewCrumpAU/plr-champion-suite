@@ -20,6 +20,7 @@ It runs as a Next.js app (designed for Vercel). Your work is stored in your brow
 | **Research Studio** | **Niche Research** · **Keyword Finder** (pattern ideas, CSV metrics import with source labels, clustering) · **PLR Rights Review** (licence import, clause finder, warnings) |
 | **Marketing Studio** | **Sales Page Builder** (sections, live preview, standalone HTML export) · **Email Swipe Builder** (6 sequence types) · **Social Content Creator** (calendar) · **Product Name Generator** |
 | **Profit Studio** | **Profit Calculator** (scenarios, break-even, actual sales kept separate) · **Funnel Planner** (visual map, projections) · **Launch Planner** (tasks, milestones, templates, .ics calendar) · **Product Portfolio** |
+| **Memberships** | **PLR Champion members area** at `/m/plr-champion` — product library, categories, advanced search, product pages, Download Manager, My Downloads, Training Centre, courses, resources, monthly drops and the studio tools; **Membership Admin** for products, categories, releases, training and resources. See [docs/MEMBERSHIP.md](docs/MEMBERSHIP.md) |
 | **Workspace** | **Projects** (create, edit, duplicate, archive, trash/restore, snapshots) · **Export Centre** (ZIP product packages, workspace/project backups and restore, export history) · **Settings** |
 
 Every tool works without AI, using templates, your source content and manual editing. When an Anthropic key is configured, AI buttons appear alongside — streaming output, model choice, token usage and estimated cost per request, and an approval step before anything replaces saved content.
@@ -63,11 +64,12 @@ Browser (Next.js client)                                 Server (Next.js on Verc
 ### Folder guide
 
 ```
-src/app/            routes: (app)/<tool>/page.tsx, /login, /api/*
+src/app/            routes: (app)/<tool>/page.tsx, (member)/m/[brand]/*, /login, /api/*
 src/features/       one folder per studio — the tool UIs
 src/components/     shell (sidebar, header), shared UI, charts
 src/lib/data/       types, repository interfaces, Dexie implementation, React hooks
 src/lib/services/   project/asset/version/backup/storage services, sample project
+src/lib/membership/ membership data model, brand config, access rules, search, catalogue, backup, sample library
 src/lib/ai/         provider interface, Anthropic provider, tasks, prompts, model catalogue
 src/lib/auth/       password hashing, sessions, throttling, config checks
 src/lib/<domain>/   doc, import, export, covers, mockups, content, research, marketing, profit
@@ -89,5 +91,6 @@ For developers who do use a terminal, the equivalent commands are `npm run typec
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — deploy with GitHub + Vercel (no terminal), environment variables, AI key, updates, backups
 - [docs/STATUS.md](docs/STATUS.md) — completed features, what is not implemented, what was not tested
 - [docs/TESTING-CHECKLIST.md](docs/TESTING-CHECKLIST.md) — automated coverage and a manual checklist per tool
+- [docs/MEMBERSHIP.md](docs/MEMBERSHIP.md) — the PLR Champion membership area and its admin
 - [docs/DATABASE-MIGRATION.md](docs/DATABASE-MIGRATION.md) — plan for moving from browser storage to a server database later
 - [.env.example](.env.example) — every environment variable, explained

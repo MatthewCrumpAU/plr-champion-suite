@@ -19,11 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Badge, Callout, Field, Input, NativeSelect, Spinner, Textarea } from "@/components/ui/primitives";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/overlays";
 import { FileDrop } from "@/components/common/file-drop";
+import { useToolHref } from "@/components/common/tool-links";
 
 type Stage = { kind: "choose" } | { kind: "paste" } | { kind: "reading"; message: string } | { kind: "preview"; result: ImportResult } | { kind: "error"; message: string };
 
 export function ImportDialog({ open, onOpenChange, project, initialFile }: { open: boolean; onOpenChange: (o: boolean) => void; project: Project | null; initialFile?: File | null }) {
   const router = useRouter();
+  const toolHref = useToolHref();
   const [stage, setStage] = React.useState<Stage>({ kind: "choose" });
   const [strategy, setStrategy] = React.useState<SplitStrategy>("auto");
   const [title, setTitle] = React.useState("");
@@ -94,7 +96,7 @@ export function ImportDialog({ open, onOpenChange, project, initialFile }: { ope
       const asset = await createDocumentFromImport({ projectId, result: stage.result, title: title.trim() || stage.result.fileName, chapters: split.chapters });
       toast.success(`Imported ${split.chapters.length} chapter${split.chapters.length === 1 ? "" : "s"}`);
       onOpenChange(false);
-      router.push(`/editor?id=${asset.id}`);
+      router.push(toolHref(`/editor?id=${asset.id}`));
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
