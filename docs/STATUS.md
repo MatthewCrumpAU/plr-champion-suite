@@ -1,0 +1,101 @@
+# Build status — PLR Champion Software Suite
+
+Version 1.0.0 · October 2026
+
+This is the completed / not-completed report the build brief asked for. "Verified" means checked by the automated tests listed in [TESTING-CHECKLIST.md](TESTING-CHECKLIST.md) and/or by hand in a real browser against a production build.
+
+---
+
+## Summary
+
+- All **22 tools** in the six studios, the Dashboard and the three Workspace pages (Projects, Export Centre, Settings) are built, use one shared project system, save automatically to browser storage, survive a page refresh, and export real files.
+- **Private owner login** (env-var password or hash, signed HttpOnly session cookie, CSRF and origin checks, throttling and lockout) protects every page and API route.
+- **AI is optional.** Every tool works without it. With an Anthropic key, AI runs server-side with streaming, model choice, usage and estimated cost, and approval before anything replaces saved content.
+- **Checks:** type check clean, lint clean (zero warnings), 90 unit tests passing, production build passing, 30 browser end-to-end tests passing (full suite run twice in a row: 60/60). Every tool was also checked at phone width (390 px) for layout overflow.
+
+---
+
+## Completed
+
+### Foundation
+- Shell preserving the approved Phase 1 design: dark navy sidebar, light workspace, white cards, blue/indigo accents, rounded controls; collapsible sidebar; project switcher; breadcrumbs; mobile navigation drawer.
+- Dashboard: active project, 12-step workflow progress calculated from real project contents, next step, recent work, workspace stats, studio launcher.
+- Shared project system: create, edit, duplicate (with internal references remapped and files copied), archive, Trash with restore and permanent delete, per-item version history (manual, automatic every N minutes, and before AI/bulk/apply/restore actions), whole-project snapshots, duplicate-project detection, labelled sample project.
+- IndexedDB persistence behind repository interfaces, schema version 1, storage report, persistent-storage request, version pruning, unused-file clean-up, clear "storage full" handling.
+- Backup & restore: full workspace or single project as one JSON file including files and images; restore by merge, replace or "import as copies", with a preview before anything changes; validated and version-checked.
+- Export Centre: ZIP product package per project (organised folders + README listing anything that couldn't be exported), single-item downloads in every supported format, export history.
+- Settings: AI status, connection test, default model, usage log with estimated costs; autosave delay; automatic version interval; editor width; default currency; storage tools; erase all data (typed confirmation); sign out; in-browser password-hash generator for changing the owner password.
+
+### Phase 1 — Content Studio
+- **PLR Editor:** import DOCX, PDF (text-based), TXT, Markdown, HTML; automatic chapter detection with preview and adjustment; 3-panel editor (chapters / document / tools); rich formatting, images, tables; chapter add/rename/duplicate/delete/reorder/merge/split/approve; find & replace rules with preview; readability and change analysis; side-by-side compare with the untouched original; notes; DOCX, PDF, HTML, Markdown and TXT export with options; autosave and versions.
+- **AI Writer:** templates for common PLR pieces and AI generation/transformation with usage display; copy or save the result into the project.
+- **Rebrand Assistant:** author/brand/link replacement rules across a document, preview of every change, apply with a pre-change version; optional AI rewrite per chapter with approval.
+- **Outline Generator:** template and AI outlines, editable and reorderable, exported or turned into a document with chapters.
+
+### Phase 2 — Design Studio
+- **Cover Creator:** templates per product type, layered canvas editor (text, shapes, lines, images, brand logo), alignment and layer order, lock/hide, undo/redo, brand-kit colours and fonts, "keep words whole" text fitting; PNG, JPG, PDF and 2× PNG export.
+- **Mockup Studio:** 3D book, paperback, workbook (spiral), tablet, laptop, 3–5 book bundles and course bundles from your covers or uploaded images; angle, shadow, reflection, background and caption; export at several sizes, PNG/JPG, 1× and 2×.
+- **Brand Kits:** name, tagline, author, colours, palette, heading/body fonts, logo; linked to projects and used by covers, mockups, sales pages and exports.
+
+### Phase 3 — Product Studio
+- **Product Builder, Bonus Builder, Lead Magnet Creator:** ebooks, short guides, workbooks, checklists, mini-courses, email courses, challenges, membership modules, toolkits, action plans, worksheets, resource lists, quick-start guides, templates, cheat sheets, implementation plans and short reports, built from the chosen source chapters (real content, not filler); optional AI draft split into parts; saved as documents with their role in the project; matching cover in one click.
+- **Opportunity Scanner:** analyses a PLR document and suggests repurposing ideas with fit estimates clearly labelled as estimates; AI can add ideas (never given an invented score); hands an idea to the right builder.
+
+### Phase 4 — Research Studio
+- **Niche Research:** structured research notes, your own weighted scoring, AI suggestions labelled as hypotheses, PDF/DOCX/Markdown export.
+- **Keyword Finder:** pattern-based keyword ideas (no metrics), CSV import from your own keyword tool with column mapping and source shown on every value, clustering, starring, notes, CSV/TXT export; a server-side slot for a future metrics provider (none bundled).
+- **PLR Rights Review:** licence import or paste, clause finder that highlights possibly relevant wording, your own recorded reading of each right (allowed / not allowed / conditional / unclear), automatic reminders (e.g. Master Resell Rights never assumed), reviewed state, PDF/DOCX/Markdown report.
+
+### Phase 5 — Marketing Studio
+- **Sales Page Builder:** section templates, drag to reorder, show/hide sections, page settings (price, checkout URL — http/https only), brand styling, live desktop/mobile preview, AI drafts per section with approval, standalone HTML export (escaped, with hero image) plus DOCX/PDF/Markdown copies. Never writes testimonials, results or income claims.
+- **Email Swipe Builder:** six sequence types, ordered with send days, templates and AI drafts with approval, export as DOCX, TXT, Markdown, CSV (for email tools) and HTML.
+- **Social Content Creator:** posts per platform from your chapters, hashtags, month calendar with auto-scheduling, CSV/Markdown export.
+- **Product Name Generator:** template and AI ideas, favourites, apply a name to the project with confirmation, text export.
+
+### Phase 6 — Profit Studio
+- **Profit Calculator:** price, fees, refunds, affiliate commission, ad spend and fixed costs; revenue, gross/net profit and break-even; multiple scenarios and comparison charts; actual sales recorded separately from projections; Markdown report and CSV of actuals.
+- **Funnel Planner:** visual drag-and-drop map (lead magnet, front end, order bump, upsell, downsell, membership, premium), yes/no/next paths, templates, hypothetical projections from your own traffic and conversion assumptions, loop/orphan warnings, versions, Markdown/JSON export.
+- **Launch Planner:** built-in and custom templates, tasks with dates relative to launch day, milestones, progress, readiness checks that tick themselves from real project assets, .ics calendar, CSV and Markdown export.
+- **Product Portfolio:** every project and product with stage, price, brand and linked assets; search, filters, sorting and duplicate detection; CSV export.
+
+---
+
+## Not implemented
+
+| Item | Why |
+| --- | --- |
+| PLRforIM / PLR Profit Lab member portals | Excluded until you specifically instruct it. |
+| Server or cloud database, multi-device sync | Excluded by the brief (no cloud database). Data lives in one browser; move it with backup/restore. Plan: [DATABASE-MIGRATION.md](DATABASE-MIGRATION.md). |
+| Live keyword metrics (search volume, competition, CPC) | Not fabricated. Import them from your own keyword tool's CSV. A server-side provider interface and API route exist, with no provider bundled. |
+| Live web research inside Niche Research | The tool records your research; AI output is labelled as hypotheses, not market facts. |
+| Sending email, posting to social networks, publishing sales pages | Exports only (CSV/HTML/DOCX etc.) for use in the tools you already use. |
+| Payments, billing, public sign-up, multiple users | Excluded by the brief. |
+| OCR for scanned/image-only PDFs | Such files are detected and reported honestly; text isn't invented. |
+| AI image generation | Covers and mockups use templates, your images and brand kits. |
+| Image export of the funnel diagram | Funnels export as Markdown summary and JSON; take a screenshot for an image. |
+| BYLDITY integration | Excluded by the brief. |
+
+## Not tested
+
+- **The real Anthropic API.** No API key was available during the build. The AI path is tested end to end with the built-in test provider (clearly labelled `[TEST OUTPUT]`), which exercises the same server route, streaming, approval and usage logging. Error messages for bad keys, permissions, rate limits and overloads are implemented from the HTTP status codes Anthropic's API returns but were not triggered against the live API. Run **Settings → AI → Test connection** after adding your key.
+- **A live Vercel deployment.** The production build was tested with `next start`; the Vercel deployment itself, its environment-variable screens and Firewall rules were not exercised.
+- **Browsers other than Chromium.** Automated tests run in Chromium. Firefox and Safari were not tested. Note that Safari may delete website storage for sites you haven't visited for a while — keep backups if you use Safari.
+- **Phone and tablet use.** Every tool was checked at 390 px width for layout problems and the editors stack into single-column layouts, but detailed design work (covers, funnels) was only exercised on desktop sizes and is best done there.
+- **Very large imports** (hundreds of pages, files near the 60 MB limit) beyond the sample and test fixtures.
+
+## Known limitations
+
+- Data is per browser and per device. Clearing site data, private windows or browser storage eviction remove it — download backups regularly.
+- Login throttling is in memory per server instance; add the Vercel Firewall rate-limit rule described in [DEPLOYMENT.md](DEPLOYMENT.md) for deployment-wide protection.
+- Imports simplify complex layouts (columns, text boxes); embedded images over 2 MB in DOCX files are skipped with a warning.
+- AI costs shown in the app are estimates from published prices; Anthropic's invoice is the actual figure.
+- Fit estimates, price ideas, projections and funnel numbers are what-if calculations from your inputs, not market data or forecasts.
+
+## Decisions made without asking (per the brief)
+
+- **IndexedDB via Dexie** behind repository interfaces for local-first storage that can later move to a server.
+- **Owner password via environment variables**, with an in-browser PBKDF2 hash generator so the plain password never has to be stored.
+- **Claude Sonnet 5.5** as the default AI model (balanced cost/quality), switchable in Settings or with `PLR_AI_MODEL`; output capped per request by `PLR_AI_MAX_OUTPUT_TOKENS`.
+- **One generic asset model** (typed JSON data per tool) so versions, snapshots, trash, backups and exports work identically everywhere.
+- **No third-party scripts or fonts at runtime** (fonts are bundled), enforced by a strict Content-Security-Policy. Exported sales pages may link Google Fonts for the fonts you chose.
+- **GitHub Actions** runs every check after each push so nothing requires a terminal.
