@@ -23,6 +23,7 @@ import { AIStatusNotice } from "@/components/common/ai";
 import { RichEditor } from "@/components/common/rich-editor";
 import { AssetWorkspace } from "@/components/common/asset-workspace";
 import type { AssetEditor } from "@/features/common/use-asset-editor";
+import { useToolHref } from "@/components/common/tool-links";
 
 const STEPS = ["Source", "New brand", "Replacements", "Review proposals", "Save"];
 
@@ -72,6 +73,7 @@ function ProposalCompare({ chapter, proposal }: { chapter: Chapter; proposal: Re
 }
 
 function RebrandEditor({ editor, project }: { editor: AssetEditor<"rebrand-session">; project: Project }) {
+  const toolHref = useToolHref();
   const data = editor.data!;
   const { data: docs } = useAssets(project.id, "document");
   const { data: kits } = useBrandKits();
@@ -179,7 +181,7 @@ function RebrandEditor({ editor, project }: { editor: AssetEditor<"rebrand-sessi
             {!docs?.length ? (
               <Callout tone="warning" title="No documents yet">
                 Import your PLR product in the{" "}
-                <Link href="/editor" className="font-medium underline">
+                <Link href={toolHref("/editor")} className="font-medium underline">
                   PLR Editor
                 </Link>{" "}
                 first.
@@ -493,7 +495,7 @@ function RebrandEditor({ editor, project }: { editor: AssetEditor<"rebrand-sessi
             {data.resultDocumentId && (
               <Callout tone="success" title="Saved">
                 Last saved {data.savedAt ? new Date(data.savedAt).toLocaleString() : ""}.{" "}
-                <Link href={`/editor?id=${data.resultDocumentId}`} className="font-medium underline">
+                <Link href={toolHref(`/editor?id=${data.resultDocumentId}`)} className="font-medium underline">
                   Open the rebranded document
                 </Link>
               </Callout>
@@ -514,7 +516,7 @@ function RebrandEditor({ editor, project }: { editor: AssetEditor<"rebrand-sessi
                     if (!fresh) throw new Error("This rebrand session no longer exists.");
                     const r = await saveRebrand(fresh, saveOpts);
                     editor.reload();
-                    toast.success(`Saved ${plural(r.accepted, "rebranded chapter")}`, { action: { label: "Open", onClick: () => window.location.assign(`/editor?id=${r.documentId}`) } });
+                    toast.success(`Saved ${plural(r.accepted, "rebranded chapter")}`, { action: { label: "Open", onClick: () => window.location.assign(toolHref(`/editor?id=${r.documentId}`)) } });
                   } catch (e) {
                     toast.error(errorMessage(e));
                   } finally {

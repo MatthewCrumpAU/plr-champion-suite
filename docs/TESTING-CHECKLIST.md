@@ -8,9 +8,9 @@ All of these run on GitHub after every push (**Actions → Checks**). Last full 
 | --- | --- |
 | Type check | TypeScript strict mode across the whole app |
 | Lint | ESLint (Next.js + TypeScript rules), zero warnings |
-| Unit tests | 90 tests in 9 files (Vitest) |
-| Production build | `next build` of all 26 pages (22 tools, dashboard, workspace pages), the login page and the API routes |
-| Browser tests | 30 end-to-end tests in a real Chromium browser (Playwright) against the production build |
+| Unit tests | 111 tests in 10 files (Vitest) |
+| Production build | `next build` of all 26 studio pages (22 tools, dashboard, workspace pages), 27 membership pages, the login page and the API routes |
+| Browser tests | 45 end-to-end tests in a real Chromium browser (Playwright) against the production build |
 
 ### Unit tests (`tests/unit`)
 
@@ -23,8 +23,11 @@ All of these run on GitHub after every push (**Actions → Checks**). Last full 
 - **profit** — revenue/cost/profit arithmetic, break-even, actual sales summarised separately, funnel flows (yes/no/next), loop and orphan warnings, launch dates/progress, iCalendar export, template round-trip.
 - **auth** — PBKDF2 hashing and verification, hash preferred over plain password, signed sessions reject tampering/other secrets/old versions, login lockout and reset, config problems reported without exposing values, `__Host-` cookies.
 - **workflow** — the 12-step project workflow counts only real, non-trashed work.
+- **membership** — access rules (tiers, drafts, scheduled items, owner preview), library search ranking/filters/URL round-trip, unique slugs, category clean-up, releases kept in step with products, scheduled vs published releases, attachments and duplicate/delete file clean-up, safe links, sample library seeded once and removable without touching your own products, favourites and lesson progress, licence summaries, membership backup round-trip and brand isolation, cover text escaping, course progress, embedded tool link remapping.
 
 ### Browser tests (`tests/e2e`)
+
+- **Membership** — dashboard; library search; product page single-file and ZIP downloads with licence summary; My Downloads and download again; Advanced Search licence/category filters surviving a reload; Download Manager multi-product ZIP (valid PDF and DOCX inside); Edit in PLR Editor (and blocked for an MRR licence); View as free member (drafts hidden, member items locked, admin hidden); admin creates a category and a product with cover, file and licence then publishes it; admin schedules a monthly release; lesson completion and checklist ticks persist; membership backup and restore; phone-width layout of 15 member and admin pages; studio link and unknown-brand 404.
 
 - **Private access** — redirect to login, wrong password rejected, sign in, session kept across reloads, sign out; API rejects unauthenticated and cross-site requests.
 - **Content Studio** — DOCX import with 3 detected chapters → edit → autosave → reload persists → compare with original → DOCX, PDF and Markdown exports are valid files containing the edit; AI Writer (templates + AI provider + usage display); Outline Generator → document; sample document opens.
@@ -99,3 +102,15 @@ Tick each item on your live site. Use a fresh project (not the sample) for the e
 - [ ] Generate with AI in one tool per studio (e.g. AI Writer, Bonus Builder, Niche Research, Sales Page). Each response shows tokens and estimated cost.
 - [ ] Click **Stop** on a running AI request — it stops and nothing is applied.
 - [ ] Settings → AI usage log lists the requests; compare totals with the Anthropic Console after a day.
+
+### Membership (`/m/plr-champion`)
+- [ ] Open **Memberships → PLR Champion Members** from the studio sidebar. The first visit prepares the sample library (a progress bar shows) and lands on the member dashboard.
+- [ ] Library: search, category pills, grid/list views, save a product with the heart, then filter **Saved products only** in Advanced Search.
+- [ ] Product page: download one file, download everything as a ZIP — open the ZIP and check each product folder has `LICENCE-SUMMARY.txt`.
+- [ ] **Edit in PLR Editor** on a DOCX — it opens as a new project inside the member area with chapters split.
+- [ ] Download Manager: tick three products, download the ZIP; then **My Downloads** lists it and *Again* works.
+- [ ] Training: complete a lesson, tick a checklist item, reload — progress is kept.
+- [ ] **View as → Free member**: drafts and next month's drop disappear, member/premium products show a lock and their downloads are disabled; *Exit preview* restores admin.
+- [ ] Admin → Products → **New product**: add a title, description, category, cover image, a DOCX and a licence file, set the access level and **Publish now**. Find it in the library.
+- [ ] Admin → Releases: create next month's release, tick products, **Schedule release**. It shows as scheduled; members only see a "coming" teaser.
+- [ ] Admin → Data: download a membership backup, remove the sample content, restore the backup with **Merge**.

@@ -36,6 +36,7 @@ import { OutlinePanel } from "./outline-panel";
 import { CompareView } from "./compare-view";
 import { AIPanel, AnalysisPanel, DetailsPanel, NotesPanel, ToolsPanel } from "./panels";
 import { cn } from "@/lib/utils";
+import { useToolHref } from "@/components/common/tool-links";
 
 function useMedia(query: string) {
   const [m, setM] = React.useState(false);
@@ -97,6 +98,7 @@ function ChapterEditor({ chapter, editorKey, onReady, onChange, placeholder }: {
 
 export function EditorWorkspace({ assetId, project }: { assetId: string; project: Project }) {
   const router = useRouter();
+  const toolHref = useToolHref();
   const doc = useDocument(assetId);
   const confirm = useConfirm();
   const [editor, setEditor] = React.useState<Editor | null>(null);
@@ -236,7 +238,7 @@ export function EditorWorkspace({ assetId, project }: { assetId: string; project
         <p className="text-lg font-semibold">Document not found</p>
         <p className="mt-1 text-sm text-muted-foreground">It may have been deleted or moved to the Trash.</p>
         <Button asChild className="mt-4">
-          <Link href="/editor">Back to documents</Link>
+          <Link href={toolHref("/editor")}>Back to documents</Link>
         </Button>
       </div>
     );
@@ -371,7 +373,7 @@ export function EditorWorkspace({ assetId, project }: { assetId: string; project
       <div className="no-print flex h-12 shrink-0 items-center gap-1.5 border-b bg-card px-2 sm:px-3">
         <Tooltip content="All documents">
           <Button asChild variant="ghost" size="icon-sm">
-            <Link href="/editor" aria-label="All documents">
+            <Link href={toolHref("/editor")} aria-label="All documents">
               <ArrowLeft />
             </Link>
           </Button>
@@ -392,7 +394,7 @@ export function EditorWorkspace({ assetId, project }: { assetId: string; project
             <DropdownMenuContent align="start" className="w-80">
               <DropdownMenuLabel>Documents in {project.name}</DropdownMenuLabel>
               {projectDocs?.map((d) => (
-                <DropdownMenuItem key={d.id} onSelect={() => router.push(`/editor?id=${d.id}`)} className={cn(d.id === assetId && "bg-secondary")}>
+                <DropdownMenuItem key={d.id} onSelect={() => router.push(toolHref(`/editor?id=${d.id}`))} className={cn(d.id === assetId && "bg-secondary")}>
                   <FileText />
                   <span className="min-w-0 flex-1 truncate">{d.title}</span>
                   <span className="text-[11px] text-muted-foreground">{d.data.role}</span>
@@ -400,7 +402,7 @@ export function EditorWorkspace({ assetId, project }: { assetId: string; project
               ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/editor">
+                <Link href={toolHref("/editor")}>
                   <Plus /> Import or create a document
                 </Link>
               </DropdownMenuItem>

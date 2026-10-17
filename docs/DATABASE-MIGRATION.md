@@ -105,3 +105,45 @@ create table schema_info (version int not null);
 - **Function duration.** Big imports should be chunked (per project) rather than one long request.
 - **Costs.** A server database and object storage add hosting costs and backups to manage. Today's browser storage costs nothing; that trade-off is the main reason it was chosen.
 - **Security.** Database credentials live only in server environment variables. Every data route must require the owner session; add the routes to the existing middleware matcher and keep CSRF checks on writes.
+
+---
+
+## 4. Membership tables
+
+The membership area (Phase 2 onward) has its own browser database, `plr-champion-membership`, and its own repository interface (`MembershipRepositories` in `src/lib/membership/db.ts`). Every record carries a `brandId`, so each brand's catalogue and customers stay separate in one set of tables. When the move to a hosted database (Supabase is the intended target) happens, each repository maps to one table and the access rules in `src/lib/membership/access.ts` become row-level-security policies.
+
+```sql
+create table member_accounts (
+  id text primary key,                 -- later: references auth.users(id)
+  email text not null unique,
+  display_name text not null,
+  role text not null,                  -- owner | member
+  brand_access jsonb not null,         -- { "plr-champion": "premium", "plrforim": "member" }
+  source text not null,                -- owner | purchase | bundle | manual
+  created_at timestamptz not null,
+  updated_at timestamptz not null
+);
+create table linked_accounts (account_id text references member_accounts(id), linked_id text references member_accounts(id), primary key (account_id, linked_id));
+
+create table categories (id text primary key, brand_id text not null, name text, slug text, description text, icon text, color text, sort int, created_at timestamptz, updated_at timestamptz, unique (brand_id, slug));
+create table products (
+  id text primary key, brand_id text not null, slug text not null, title text not null, subtitle text, description text,
+  highlights text[], format text, category_ids text[], tags text[], cover_file_id text, gallery_file_ids text[],
+  files jsonb not null,                -- attachments: id, file_id, name, kind, size, mime, editable
+  licence jsonb not null,              -- type, rights{…}, terms, file_id
+  word_count int, page_count int, release_id text, access text not null, status text not null, publish_at timestamptz,
+  featured boolean, is_sample boolean, created_at timestamptz, updated_at timestamptz, unique (brand_id, slug)
+);
+create table releases (id text primary key, brand_id text not null, title text, month text, theme text, description text, product_ids text[], cover_file_id text, status text, publish_at timestamptz, is_sample boolean, created_at timestamptz, updated_at timestamptz);
+create table courses (id text primary key, brand_id text not null, kind text, title text, summary text, level text, tool_hint text, cover_file_id text, modules jsonb not null, access text, status text, sort int, is_sample boolean, created_at timestamptz, updated_at timestamptz);
+create table resources (id text primary key, brand_id text not null, title text, description text, type text, file_id text, file_name text, file_size bigint, url text, access text, status text, sort int, is_sample boolean, created_at timestamptz, updated_at timestamptz);
+create table member_files (id text primary key, brand_id text, name text, mime text, size bigint, object_key text not null, created_at timestamptz);  -- blobs move to Storage buckets per brand
+
+create table downloads (id text primary key, brand_id text not null, member_id text not null references member_accounts(id), product_id text, product_title text, attachment_id text, file_name text, size bigint, kind text, created_at timestamptz);
+create table lesson_progress (id text primary key, brand_id text not null, member_id text not null, course_id text, lesson_id text, completed_at timestamptz, checked int[], updated_at timestamptz);
+create table favourites (id text primary key, brand_id text not null, member_id text not null, product_id text not null, created_at timestamptz);
+```
+
+Policy outline (mirrors `access.ts`): members can select catalogue rows for a brand only when `status` is live (`published`/`scheduled` and `publish_at <= now()`), and can download files only when their `brand_access` tier for that brand is at least the item's `access`. The owner role bypasses both. Downloads, progress and favourites are readable and writable only by their `member_id`. File downloads should go through short-lived signed URLs issued after the same check.
+
+Moving the data uses the membership backup ZIP (`membership.json` + `files/`) exactly as the studio migration uses the workspace backup.

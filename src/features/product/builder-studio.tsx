@@ -24,6 +24,7 @@ import { AIRunStatus, AIStatusNotice, AIUsageLine, MarkdownView, useBrief } from
 import { SourcePicker, chaptersToMarkdown, type SourceSelection } from "@/components/common/source-picker";
 import { DocumentExportMenu } from "@/components/common/doc-export";
 import { cn, errorMessage, timeAgo } from "@/lib/utils";
+import { useToolHref } from "@/components/common/tool-links";
 
 interface BuilderState {
   format: BuildFormat;
@@ -92,6 +93,7 @@ function DraftPreview({ draft }: { draft: BuiltDocument }) {
 }
 
 function BuiltList({ kind, project, highlightId }: { kind: BuilderKind; project: Project; highlightId: string | null }) {
+  const toolHref = useToolHref();
   const { data: docs } = useAssets<"document">(project.id, "document");
   const { data: kit } = useBrandKit(project.brandKitId);
   const router = useRouter();
@@ -123,7 +125,7 @@ function BuiltList({ kind, project, highlightId }: { kind: BuilderKind; project:
             </div>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" asChild>
-                <Link href={`/editor?id=${d.id}`}>
+                <Link href={toolHref(`/editor?id=${d.id}`)}>
                   <ExternalLink /> Open in editor
                 </Link>
               </Button>
@@ -153,6 +155,7 @@ function BuiltList({ kind, project, highlightId }: { kind: BuilderKind; project:
 }
 
 export function BuilderStudio({ kind, project, description }: { kind: BuilderKind; project: Project; description: string }) {
+  const toolHref = useToolHref();
   const [s, setS] = useBuilderState(kind, project);
   const set = (patch: Partial<BuilderState>) => setS((x) => ({ ...x, ...patch }));
   const { data: docs } = useAssets<"document">(project.id, "document");
@@ -291,7 +294,7 @@ export function BuilderStudio({ kind, project, description }: { kind: BuilderKin
           </Card>
           <Card className="grid gap-4 p-4">
             {!docs?.length ? (
-              <EmptyState icon={<FileText />} title="No source documents yet" description="Import a PLR product in the PLR Editor first, then build from its chapters." action={<Button asChild><Link href="/editor">Open PLR Editor</Link></Button>} />
+              <EmptyState icon={<FileText />} title="No source documents yet" description="Import a PLR product in the PLR Editor first, then build from its chapters." action={<Button asChild><Link href={toolHref("/editor")}>Open PLR Editor</Link></Button>} />
             ) : (
               <>
                 <SourcePicker projectId={project.id} value={s.source} onChange={(v) => set({ source: v })} maxHeight={220} />
@@ -353,7 +356,7 @@ export function BuilderStudio({ kind, project, description }: { kind: BuilderKin
               )}
               {s.savedId && (
                 <Button size="sm" asChild data-testid="builder-open">
-                  <Link href={`/editor?id=${s.savedId}`}>
+                  <Link href={toolHref(`/editor?id=${s.savedId}`)}>
                     <ExternalLink /> Open in PLR Editor
                   </Link>
                 </Button>
