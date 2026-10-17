@@ -1,4 +1,5 @@
 import type { AccessTier, BrandId, MemberAccount, PublishStatus } from "./types";
+import { effectiveTier } from "./entitlements";
 
 /**
  * Access rules, kept in one place so the same checks can later run on the server (Supabase RLS /
@@ -22,12 +23,13 @@ export interface Viewer {
   previewing: boolean;
 }
 
-export function viewerFor(account: MemberAccount, brandId: BrandId, previewTier: AccessTier | "owner"): Viewer {
+export function viewerFor(account: MemberAccount, brandId: BrandId, previewTier: AccessTier | "owner", allAccounts: MemberAccount[] = [account]): Viewer {
   if (account.role === "owner") {
     if (previewTier === "owner") return { accountId: account.id, role: "owner", tier: "premium", previewing: false };
     return { accountId: account.id, role: "owner", tier: previewTier, previewing: true };
   }
-  return { accountId: account.id, role: "member", tier: account.brandAccess[brandId] ?? null, previewing: false };
+  // Members get the best tier from their own membership, bundles and linked accounts.
+  return { accountId: account.id, role: "member", tier: effectiveTier(account, brandId, allAccounts), previewing: false };
 }
 
 export function isAdminView(v: Viewer): boolean {

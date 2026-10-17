@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeftRight, Eye, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, ShieldCheck, TriangleAlert, X } from "lucide-react";
+import { ArrowLeftRight, ChevronsUpDown, Eye, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, ShieldCheck, TriangleAlert, Users, X } from "lucide-react";
 import { Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input, Progress, Spinner } from "@/components/ui/primitives";
@@ -28,6 +28,13 @@ const PREVIEW_OPTIONS: { value: PreviewTier; label: string; hint: string }[] = [
   { value: "member", label: "Member", hint: "Member and free content" },
   { value: "free", label: "Free member", hint: "Free content only" },
 ];
+
+/** Human label for what the owner is currently viewing as. */
+function useViewingLabel(): string {
+  const m = useMember();
+  if (m.previewAccount) return `${m.previewAccount.displayName} (test profile)`;
+  return PREVIEW_OPTIONS.find((o) => o.value === m.previewTier)?.label ?? PREVIEW_OPTIONS[0].label;
+}
 
 function isActive(pathname: string, base: string, path: string, exact?: boolean) {
   const href = path ? `${base}/${path}` : base;
@@ -95,6 +102,7 @@ function MemberSidebar({ collapsed = false, onNavigate }: { collapsed?: boolean;
 
 function AccountMenu({ collapsed }: { collapsed: boolean }) {
   const m = useMember();
+  const viewing = useViewingLabel();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -105,7 +113,7 @@ function AccountMenu({ collapsed }: { collapsed: boolean }) {
           {!collapsed && (
             <span className="min-w-0 flex-1 leading-tight">
               <span className="block truncate text-[13px] font-medium text-white">{m.account.displayName}</span>
-              <span className="block truncate text-[11px] text-sidebar-muted">{m.viewer.previewing ? `Previewing as ${PREVIEW_OPTIONS.find((o) => o.value === m.previewTier)?.label}` : "Owner · private testing"}</span>
+              <span className="block truncate text-[11px] text-sidebar-muted">{m.viewer.previewing ? `Previewing as ${viewing}` : "Owner · private testing"}</span>
             </span>
           )}
         </button>
@@ -116,7 +124,7 @@ function AccountMenu({ collapsed }: { collapsed: boolean }) {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/">
-            <ArrowLeftRight /> Open the PLR Champion studio
+            <ArrowLeftRight /> Open the studio (owner tools)
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void logout()}>
@@ -129,16 +137,17 @@ function AccountMenu({ collapsed }: { collapsed: boolean }) {
 
 function PreviewSwitcher() {
   const m = useMember();
+  const viewing = useViewingLabel();
   if (m.account.role !== "owner") return null;
-  const current = PREVIEW_OPTIONS.find((o) => o.value === m.previewTier) ?? PREVIEW_OPTIONS[0];
+  const profiles = m.accounts.filter((a) => a.role !== "owner");
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={m.viewer.previewing ? "soft" : "outline"} size="sm" data-testid="preview-as" aria-label={`Viewing as ${current.label}. Change view`}>
-          <Eye /> <span className="hidden md:inline">{m.viewer.previewing ? current.label : "View as"}</span>
+        <Button variant={m.viewer.previewing ? "soft" : "outline"} size="sm" data-testid="preview-as" aria-label={`Viewing as ${viewing}. Change view`}>
+          <Eye /> <span className="hidden max-w-[180px] truncate md:inline">{m.viewer.previewing ? viewing : "View as"}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>View this area as…</DropdownMenuLabel>
         {PREVIEW_OPTIONS.map((o) => (
           <DropdownMenuItem key={o.value} onSelect={() => m.setPreviewTier(o.value)} data-testid={`preview-${o.value}`} className={cn(o.value === m.previewTier && "bg-secondary")}>
@@ -148,8 +157,90 @@ function PreviewSwitcher() {
             </span>
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Test profiles</DropdownMenuLabel>
+        {profiles.map((a) => (
+          <DropdownMenuItem key={a.id} onSelect={() => m.setPreviewTier(`account:${a.id}`)} data-testid={`preview-profile-${a.email}`} className={cn(m.previewAccount?.id === a.id && "bg-secondary")}>
+            <span className="grid grid-cols-1">
+              <span className="truncate font-medium">{a.displayName}</span>
+              <span className="truncate text-xs text-muted-foreground">{a.email}</span>
+            </span>
+          </DropdownMenuItem>
+        ))}
+        {m.isAdmin || m.viewer.previewing ? (
+          <DropdownMenuItem asChild>
+            <Link href={m.adminHref("access")} onClick={() => m.viewer.previewing && m.setPreviewTier("owner")}>
+              <Users /> {profiles.length ? "Manage test profiles" : "Create a test profile"}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** Switch between brand areas the viewer can open (the owner can open all of them). */
+function BrandSwitcher() {
+  const m = useMember();
+  const pathname = usePathname();
+  const others = m.brands.filter((b) => b !== m.brandId);
+  if (!others.length) return null;
+  // Keep the same section when switching (product/drop/course pages go to their list).
+  const rest = pathname.slice(m.href().length).split("/").filter(Boolean);
+  const section = rest[0] === "admin" ? rest.slice(0, 2) : rest[0] === "tools" ? rest.slice(0, 2) : rest.slice(0, 1);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" data-testid="brand-switcher" aria-label={`Switch from ${m.brand.name} to another membership`}>
+          <BrandMark brand={m.brand} className="size-5 rounded-md text-[9px]" />
+          <span className="hidden lg:inline">{m.brand.shortName}</span>
+          <ChevronsUpDown className="opacity-60" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuLabel>{m.viewer.previewing && m.previewAccount ? `${m.previewAccount.displayName}'s memberships` : "Your memberships"}</DropdownMenuLabel>
+        {[m.brandId, ...others].map((b) => {
+          const brand = getBrand(b);
+          return (
+            <DropdownMenuItem key={b} asChild className={cn(b === m.brandId && "bg-secondary")}>
+              <Link href={memberPath(b, section.join("/"))} data-testid={`switch-${b}`}>
+                <BrandMark brand={brand} className="size-6 rounded-md text-[10px]" />
+                <span className="grid grid-cols-1">
+                  <span className="font-medium">{brand.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">{brand.tagline}</span>
+                </span>
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** Shown when a previewed member has no membership for this brand — brands keep separate customers. */
+function NoBrandAccess() {
+  const m = useMember();
+  return (
+    <div className="mx-auto mt-16 max-w-lg px-4 text-center" data-testid="no-brand-access">
+      <BrandMark brand={m.brand} className="mx-auto size-12" />
+      <h1 className="mt-4 text-xl font-semibold tracking-tight">No {m.brand.name} membership</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {m.previewAccount?.displayName ?? "This account"} doesn&apos;t have access to {m.brand.name}. Each brand has its own members; a bundle or a linked account can give access to both.
+      </p>
+      {m.brands.length > 0 && (
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          {m.brands.map((b) => (
+            <Button key={b} asChild variant="outline">
+              <Link href={memberPath(b)}>Open {getBrand(b).name}</Link>
+            </Button>
+          ))}
+        </div>
+      )}
+      <Button variant="ghost" className="mt-3" onClick={() => m.setPreviewTier("owner")}>
+        Exit preview
+      </Button>
+    </div>
   );
 }
 
@@ -174,6 +265,7 @@ function HeaderSearch() {
 
 function ShellFrame({ children }: { children: React.ReactNode }) {
   const m = useMember();
+  const viewing = useViewingLabel();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [collapsedPref, setCollapsedPref] = React.useState<"expanded" | "collapsed" | null>(null);
@@ -209,21 +301,22 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
             <BrandMark brand={m.brand} className="size-7" />
           </Link>
           <div className="flex min-w-0 flex-1 items-center gap-3">{toolRoute ? <ProjectSwitcher /> : <HeaderSearch />}</div>
+          <BrandSwitcher />
           <PreviewSwitcher />
         </header>
         {m.viewer.previewing && (
-          <div className="no-print flex items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-[13px] text-amber-900" data-testid="preview-banner">
+          <div className="no-print flex items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2 text-[13px] text-amber-900" data-testid="preview-banner" data-saved={m.previewSaved}>
             <Eye className="size-4 shrink-0" />
             <span className="min-w-0 flex-1">
-              Previewing as <strong>{PREVIEW_OPTIONS.find((o) => o.value === m.previewTier)?.label}</strong>. Drafts and admin controls are hidden; locked items show what members would see.
+              Previewing as <strong>{viewing}</strong>. Drafts and admin controls are hidden; locked items show what members would see.
             </span>
             <Button size="xs" variant="outline" onClick={() => m.setPreviewTier("owner")}>
               <X /> Exit preview
             </Button>
           </div>
         )}
-        <main id="main" className="plr-scroll relative min-h-0 flex-1 overflow-y-auto">
-          {children}
+        <main id="main" className="plr-scroll relative min-h-0 flex-1 overflow-y-auto" data-preview-saved={m.previewSaved}>
+          {m.viewer.tier === null ? <NoBrandAccess /> : children}
         </main>
       </div>
     </div>

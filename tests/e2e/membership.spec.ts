@@ -111,6 +111,7 @@ test.describe("PLR Champion membership", () => {
     await page.getByTestId("preview-as").click();
     await page.getByTestId("preview-free").click();
     await expect(page.getByTestId("preview-banner")).toContainText("Free member");
+    await expect(page.getByTestId("preview-banner")).toHaveAttribute("data-saved", "true");
     // Draft and scheduled products are hidden from members.
     await expect(page.getByTestId("result-count")).toHaveText("10 results");
     await expect(page.getByRole("link", { name: "Admin overview" })).toHaveCount(0);

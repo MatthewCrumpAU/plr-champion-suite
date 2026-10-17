@@ -47,8 +47,33 @@ import type { BrandConfig } from "@/lib/membership/brands";
 import { ACCESS_TIER_LABELS, LICENCE_RIGHTS, LICENCE_TYPE_LABELS, PRODUCT_FORMAT_LABELS, PUBLISH_STATUS_LABELS, RIGHT_VALUE_LABELS, type AccessTier, type Category, type Licence, type Product, type PublishStatus, type RightValue } from "@/lib/membership/types";
 
 /* ---------------------------------------- Brand ---------------------------------------- */
+/** PLRforIM mark: teal tile with rising orange bars (growth for internet marketers). */
+function ImMark({ className }: { className?: string }) {
+  const id = React.useId().replace(/:/g, "");
+  return (
+    <svg viewBox="0 0 40 40" className={cn("size-8 shrink-0", className)} aria-hidden="true">
+      <defs>
+        <linearGradient id={`im-tile-${id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#17b3a0" />
+          <stop offset="1" stopColor="#0a5c52" />
+        </linearGradient>
+        <linearGradient id={`im-bar-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffb27a" />
+          <stop offset="1" stopColor="#ff7a2e" />
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="10" fill={`url(#im-tile-${id})`} />
+      <rect x="10" y="22" width="5" height="9" rx="1.5" fill={`url(#im-bar-${id})`} />
+      <rect x="17.5" y="17" width="5" height="14" rx="1.5" fill={`url(#im-bar-${id})`} />
+      <rect x="25" y="11" width="5" height="20" rx="1.5" fill={`url(#im-bar-${id})`} />
+      <path d="M9 19.5 L17 13 L22 16 L30.5 8.5" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity=".9" />
+    </svg>
+  );
+}
+
 export function BrandMark({ brand, className }: { brand: BrandConfig; className?: string }) {
   if (brand.id === "plr-champion") return <LogoMark className={className} />;
+  if (brand.id === "plrforim") return <ImMark className={className} />;
   return (
     <span
       aria-hidden

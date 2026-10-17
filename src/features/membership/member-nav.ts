@@ -18,6 +18,7 @@ import {
   Wand2,
   Workflow,
   Archive,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import type { BrandConfig } from "@/lib/membership/brands";
@@ -96,6 +97,7 @@ export function memberNav(brand: BrandConfig, isAdmin: boolean): MemberNavSectio
         { label: "Releases", path: "admin/releases", icon: CalendarRange },
         { label: "Training", path: "admin/courses", icon: ListChecks },
         { label: "Resources", path: "admin/resources", icon: Package },
+        { label: "Members & access", path: "admin/access", icon: Users },
         { label: "Data & backup", path: "admin/data", icon: Database },
       ],
     });

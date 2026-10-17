@@ -65,14 +65,19 @@ This is the completed / not-completed report the build brief asked for. "Verifie
 - Membership Admin: products (files, images, licence, publishing, drops, categories), categories, monthly releases (schedule or release now), training, resources, data & backup (ZIP backup/restore, sample content, erase).
 - Original sample library generated on first visit (12 products with real DOCX/PDF files, 4 drops, 6 courses and tutorials, 6 resources). Details: [MEMBERSHIP.md](MEMBERSHIP.md).
 
+### Ecosystem Phase 3 — PLRforIM
+- Separate branded member area at `/m/plrforim` (teal/orange theme, own mark, “Monthly IM Drops”) using the same components and tools, with its own internet-marketing sample library (11 products, 4 drops, courses, tutorials, resources) and its own admin, backups and customers.
+- Brand switcher that keeps your place; brand-isolated data and backups.
+- Members & access: bundles (PLR Champion + PLRforIM), linked accounts and per-brand tiers resolved by one entitlements module; local test profiles to preview a PLRforIM-only buyer, a linked buyer or a bundle buyer. No live cross-brand sign-in.
+
 ---
 
 ## Not implemented
 
 | Item | Why |
 | --- | --- |
-| PLRforIM brand area and PLR Profit Lab | Planned as Phases 3 and 4 of the ecosystem brief. The PLR Champion membership (Phase 2) is built — see [MEMBERSHIP.md](MEMBERSHIP.md). |
-| Member sign-up, subscriptions, payments, cross-brand sign-in | Excluded by the brief for private testing. The account model (per-brand access levels, linked accounts) is prepared for it. |
+| PLR Profit Lab | Phase 4 of the ecosystem brief. The PLR Champion (Phase 2) and PLRforIM (Phase 3) memberships are built — see [MEMBERSHIP.md](MEMBERSHIP.md). |
+| Member sign-up, subscriptions, payments, cross-brand sign-in | Excluded by the brief for private testing. The account model (per-brand access levels, bundles, linked accounts) is built and testable with local test profiles. |
 | Server or cloud database, multi-device sync | Excluded by the brief (no cloud database). Data lives in one browser; move it with backup/restore. Plan: [DATABASE-MIGRATION.md](DATABASE-MIGRATION.md). |
 | Live keyword metrics (search volume, competition, CPC) | Not fabricated. Import them from your own keyword tool's CSV. A server-side provider interface and API route exist, with no provider bundled. |
 | Live web research inside Niche Research | The tool records your research; AI output is labelled as hypotheses, not market facts. |

@@ -8,9 +8,9 @@ All of these run on GitHub after every push (**Actions → Checks**). Last full 
 | --- | --- |
 | Type check | TypeScript strict mode across the whole app |
 | Lint | ESLint (Next.js + TypeScript rules), zero warnings |
-| Unit tests | 111 tests in 10 files (Vitest) |
-| Production build | `next build` of all 26 studio pages (22 tools, dashboard, workspace pages), 27 membership pages, the login page and the API routes |
-| Browser tests | 45 end-to-end tests in a real Chromium browser (Playwright) against the production build |
+| Unit tests | 121 tests in 11 files (Vitest) |
+| Production build | `next build` of all 26 studio pages (22 tools, dashboard, workspace pages), 28 membership pages (shared by both brands), the login page and the API routes |
+| Browser tests | 49 end-to-end tests in a real Chromium browser (Playwright) against the production build |
 
 ### Unit tests (`tests/unit`)
 
@@ -23,9 +23,12 @@ All of these run on GitHub after every push (**Actions → Checks**). Last full 
 - **profit** — revenue/cost/profit arithmetic, break-even, actual sales summarised separately, funnel flows (yes/no/next), loop and orphan warnings, launch dates/progress, iCalendar export, template round-trip.
 - **auth** — PBKDF2 hashing and verification, hash preferred over plain password, signed sessions reject tampering/other secrets/old versions, login lockout and reset, config problems reported without exposing values, `__Host-` cookies.
 - **workflow** — the 12-step project workflow counts only real, non-trashed work.
+- **brands** — both brands switched on with their own theme; separate sample libraries with valid categories and drops; no income claims in sample text; seeding, removal and backup restore never touch the other brand; entitlements from own membership, bundles and linked accounts (both directions, one hop); test profile validation, linking, preview and clean-up.
 - **membership** — access rules (tiers, drafts, scheduled items, owner preview), library search ranking/filters/URL round-trip, unique slugs, category clean-up, releases kept in step with products, scheduled vs published releases, attachments and duplicate/delete file clean-up, safe links, sample library seeded once and removable without touching your own products, favourites and lesson progress, licence summaries, membership backup round-trip and brand isolation, cover text escaping, course progress, embedded tool link remapping.
 
 ### Browser tests (`tests/e2e`)
+
+- **PLRforIM** — own branded dashboard, theme and library (no PLR Champion products), ZIP licence summary names PLRforIM, IM drops; brand switcher keeps the section in both directions; test profiles: an IM-only buyer is refused PLR Champion and sees member-level IM content, linking a PLR Champion account shares access both ways, a bundle buyer gets premium on both; a PLRforIM backup is refused by PLR Champion.
 
 - **Membership** — dashboard; library search; product page single-file and ZIP downloads with licence summary; My Downloads and download again; Advanced Search licence/category filters surviving a reload; Download Manager multi-product ZIP (valid PDF and DOCX inside); Edit in PLR Editor (and blocked for an MRR licence); View as free member (drafts hidden, member items locked, admin hidden); admin creates a category and a product with cover, file and licence then publishes it; admin schedules a monthly release; lesson completion and checklist ticks persist; membership backup and restore; phone-width layout of 15 member and admin pages; studio link and unknown-brand 404.
 
@@ -114,3 +117,10 @@ Tick each item on your live site. Use a fresh project (not the sample) for the e
 - [ ] Admin → Products → **New product**: add a title, description, category, cover image, a DOCX and a licence file, set the access level and **Publish now**. Find it in the library.
 - [ ] Admin → Releases: create next month's release, tick products, **Schedule release**. It shows as scheduled; members only see a "coming" teaser.
 - [ ] Admin → Data: download a membership backup, remove the sample content, restore the backup with **Merge**.
+
+### PLRforIM (`/m/plrforim`) and access
+- [ ] Open **Memberships → PLRforIM Members**: teal/orange branding, “Monthly IM Drops”, an internet-marketing library — none of PLR Champion's products.
+- [ ] Use the brand button (next to **View as**) to jump between brands; you stay on the same page type.
+- [ ] Admin → **Members & access** → create an “IM only” test profile (PLRforIM: Member). **View as** it, then open PLR Champion — you get the “No PLR Champion membership” page.
+- [ ] Create a “Champion buyer” (PLR Champion: Premium) linked to the IM profile; view as the IM profile again — PLR Champion opens.
+- [ ] Create a bundle profile — both brands show Premium “via Bundle”.
