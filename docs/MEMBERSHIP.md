@@ -1,8 +1,15 @@
-# PLR Champion membership (Phase 2)
+# Memberships: PLR Champion and PLRforIM (Phases 2–3)
 
-The membership area is the customer-facing side of PLR Champion: a premium member library with downloads, training, resources and the studio tools, plus an owner-only admin for loading products and organising monthly releases.
+The membership areas are the customer-facing side of the ecosystem: premium member libraries with downloads, training, resources and the studio tools, plus an owner-only admin for loading products and organising monthly releases.
 
-It lives at **`/m/plr-champion`** (the studio sidebar has a **Memberships** section linking to it). Like every other page it sits behind the owner login — there is no public sign-up, subscription, payment or member account system yet.
+| Brand | Address | Look | Library |
+| --- | --- | --- | --- |
+| **PLR Champion** | `/m/plr-champion` | Indigo and gold, crown mark | General-niche PLR (health, money, family, home, business…), *Monthly Product Drops* |
+| **PLRforIM** | `/m/plrforim` | Teal and orange, growth-chart mark | Internet-marketing PLR (list building, affiliate, traffic, social, launches), *Monthly IM Drops* |
+
+Both use the same components and services, but each brand has its **own** products, categories, drops, training, resources, downloads, favourites, progress, backups and customers. The studio sidebar's **Memberships** section links to both. Like every other page they sit behind the owner login — there is no public sign-up, subscription, payment or member account system yet.
+
+Everything below applies to both brands (swap `plr-champion` for `plrforim` in the addresses).
 
 ---
 
@@ -30,6 +37,17 @@ It lives at **`/m/plr-champion`** (the studio sidebar has a **Memberships** sect
 ### View as… (access preview)
 The **View as** button in the header switches between *Owner (admin view)*, *Premium member*, *Member* and *Free member*. While previewing, drafts and scheduled items disappear, admin links are hidden, and anything above that level is shown locked (“Member access required”) with downloads and editing disabled — exactly what that member would see. A banner shows the preview is on; **Exit preview** returns to the owner view.
 
+### Switching brands
+The brand button next to **View as** switches between PLR Champion and PLRforIM and keeps you in the same section (library → library, admin products → admin products). When previewing a test profile it only lists the brands that profile can open.
+
+### Members & access (`/admin/access`) — prepared for bundle buyers
+Shows every account in this browser and what it can open on each brand, and why:
+- **Own membership** — the tier bought on that brand.
+- **Bundle** — the *PLR Champion + PLRforIM bundle* grants premium on both.
+- **Linked account** — the same person's account on the other brand; linked accounts share access both ways (one hop).
+
+The highest tier wins. **New test profile** creates a local, sign-in-less profile (name, email label, tier per brand, bundle, links). **View as** on a profile shows the areas exactly as that customer would see them — a PLRforIM-only buyer gets a “No PLR Champion membership” page on PLR Champion with a link to PLRforIM. Nothing here signs anyone in; when memberships go live, real accounts use the same model (`src/lib/membership/entitlements.ts`).
+
 ### Membership Admin (`/m/plr-champion/admin`)
 - **Overview** — live / scheduled / draft counts, storage used, products missing a cover, files, category or description, recently edited.
 - **Products** — create, edit, duplicate, publish/unpublish, archive, delete. The editor autosaves and covers: title, subtitle, page address, format, description (Markdown with preview), highlights, tags; **files** (drag and drop, up to 200 MB each, type per file, word count measured from editable files); **licence** (type, each right as allowed / not allowed / conditions apply / not stated, conditions text, licence document); **publishing** (status, available-from date, access level, drop, featured); categories; cover and preview images.
@@ -40,7 +58,12 @@ The **View as** button in the header switches between *Owner (admin view)*, *Pre
 - **Data & backup** — storage use, **download a membership backup** (one ZIP), **restore** it (merge or replace), remove or recreate the sample content, erase this brand's membership data.
 
 ## Sample content
-On the first visit the area creates an original sample library so everything can be tested immediately: 6 categories, 12 products (real DOCX, PDF, Markdown and text files generated in the browser, generated covers and “what's inside” preview images, licence files), 4 monthly drops (two months ago, last month, this month and next month — scheduled), 2 courses, 4 tool tutorials and 6 resources. One product is a draft, one is scheduled, one uses Master Resell Rights (not editable), and the access levels are mixed so the preview modes show real differences.
+On the first visit each brand creates its own original sample library so everything can be tested immediately. Product files are real DOCX, PDF, Markdown and text files generated in the browser, with generated covers, “what's inside” preview images and licence files.
+
+- **PLR Champion:** 6 categories, 12 products, 4 monthly drops (two months ago, last month, this month and next month — scheduled), 2 courses, 4 tool tutorials, 6 resources.
+- **PLRforIM:** 6 IM categories, 11 products (lead magnets, welcome-email swipes, affiliate guide, review templates, bonus stacking, SEO, short-form video, a 30-day social calendar, a launch mini-course, an MRR workflow guide and a draft), 4 IM drops, 2 courses, 2 tutorials, 6 resources.
+
+In each, one product is a draft, one is scheduled, one uses Master Resell Rights (not editable), and the access levels are mixed so the preview modes show real differences.
 
 All sample items are marked **Sample**. *Admin → Data → Remove sample content* deletes them (your own products are never touched); *Recreate sample library* brings them back.
 
@@ -53,6 +76,6 @@ All sample items are marked **Sample**. *Admin → Data → Remove sample conten
 - `src/lib/membership/` — data model (`types.ts`), its own Dexie database and brand-scoped repositories (`db.ts`), brand registry and theming (`brands.ts`), access rules (`access.ts`), search (`search.ts`), catalogue services (`catalog.ts`), member actions (`member-actions.ts`), the editor bridge, backup, seeding and progress helpers. All pure TypeScript with unit tests.
 - `src/features/membership/` — the member shell, pages and admin screens. They read data only through `useMember()`, `useCatalog()` and `useMemberActivity()`, so swapping the storage layer later doesn't touch the UI.
 - `src/app/(member)/m/[brand]/…` — routes. Brands are switched on in `LIVE_BRAND_IDS`; any other brand id returns 404.
-- **Brands are separate by design.** Every record has a `brandId`; categories, products, releases, courses, resources, downloads, favourites and progress never cross brands. Colours, names and the drop name come from the brand config. PLRforIM (Phase 3) is already defined there but not yet switched on.
-- **Accounts are prepared, not live.** `MemberAccount` has per-brand access levels and `linkedAccountIds` for future bundle purchasers. Today the only account is the owner, created automatically.
+- **Brands are separate by design.** Every record has a `brandId`; categories, products, releases, courses, resources, downloads, favourites, progress and backups never cross brands (a PLRforIM backup is refused by PLR Champion's restore). Colours, marks, names and the drop name come from `brands.ts`; sample libraries from `sample-libraries.ts`.
+- **Accounts are prepared, not live.** `MemberAccount` has per-brand access levels, `bundleIds` and `linkedAccountIds`; `entitlements.ts` resolves them into what each account can open. Today the owner is the only real account; test profiles exist only to preview access.
 - Supabase-ready table sketch: see [DATABASE-MIGRATION.md](DATABASE-MIGRATION.md#4-membership-tables).

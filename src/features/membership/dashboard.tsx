@@ -109,7 +109,7 @@ export function MemberDashboard() {
         <div className="grid grid-cols-1 min-w-0 gap-8">
           {drop && (
             <section>
-              <SectionTitle action={<Link href={m.href("drops")} className="text-xs font-medium text-primary hover:underline">All {m.brand.dropName.toLowerCase()}s</Link>}>This month&apos;s drop</SectionTitle>
+              <SectionTitle action={<Link href={m.href("drops")} className="text-xs font-medium text-primary hover:underline">All {m.brand.dropName}s</Link>}>This month&apos;s drop</SectionTitle>
               <Card className="grid grid-cols-1 gap-5 overflow-hidden p-0 sm:grid-cols-[180px_minmax(0,1fr)]">
                 <StoredImage fileId={drop.coverFileId} alt={`${drop.title} drop`} className="h-full max-h-60 w-full sm:max-h-none" />
                 <div className="p-5 sm:pl-0">

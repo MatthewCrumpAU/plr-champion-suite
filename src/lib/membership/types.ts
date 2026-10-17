@@ -276,8 +276,12 @@ export interface MemberAccount {
   brandAccess: Partial<Record<BrandId, AccessTier>>;
   /** Accounts on other brands that belong to the same person (bundle purchasers). */
   linkedAccountIds: string[];
-  /** Where the account came from — "owner" now; later a purchase or bundle. */
-  source: "owner" | "purchase" | "bundle" | "manual";
+  /** Bundles held by this account (see entitlements.ts → BUNDLES). */
+  bundleIds?: string[];
+  /** Where the account came from — "owner" now; "test" for local preview profiles; later a purchase or bundle. */
+  source: "owner" | "purchase" | "bundle" | "manual" | "test";
+  /** Optional note (test profiles describe what they're for). */
+  note?: string;
   createdAt: string;
   updatedAt: string;
 }

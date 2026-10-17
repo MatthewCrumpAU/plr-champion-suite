@@ -96,8 +96,8 @@ export function isBrandId(v: string | null | undefined): v is BrandId {
   return !!v && Object.prototype.hasOwnProperty.call(BRANDS, v);
 }
 
-/** Brands whose member area is switched on. PLRforIM opens in Phase 3. */
-export const LIVE_BRAND_IDS: BrandId[] = ["plr-champion"];
+/** Brands whose member area is switched on. */
+export const LIVE_BRAND_IDS: BrandId[] = ["plr-champion", "plrforim"];
 
 export function isLiveBrand(v: string | null | undefined): v is BrandId {
   return isBrandId(v) && LIVE_BRAND_IDS.includes(v);

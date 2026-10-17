@@ -26,6 +26,7 @@ import {
   Download,
   Settings,
   Crown,
+  ChartNoAxesCombined,
   LayoutGrid,
   type LucideIcon,
 } from "lucide-react";
@@ -108,7 +109,8 @@ export const NAV: NavSection[] = [
     title: "Memberships",
     items: [
       { label: "PLR Champion Members", href: "/m/plr-champion", icon: Crown, description: "Member library, downloads, training and tools" },
-      { label: "Membership Admin", href: "/m/plr-champion/admin", icon: LayoutGrid, description: "Upload products, categories and monthly releases" },
+      { label: "PLRforIM Members", href: "/m/plrforim", icon: ChartNoAxesCombined, description: "Internet-marketing PLR library, swipes and training" },
+      { label: "Membership Admin", href: "/m/plr-champion/admin", icon: LayoutGrid, description: "Products, categories, releases and access for each brand" },
     ],
   },
   {

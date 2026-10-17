@@ -3,7 +3,9 @@
 import * as React from "react";
 import { getBrand, memberPath, adminPath, type BrandConfig } from "@/lib/membership/brands";
 import { useMemberLive } from "@/lib/membership/hooks";
-import { OWNER_ACCOUNT_ID, setPreviewTier as persistPreviewTier, type PreviewTier } from "@/lib/membership/account";
+import { OWNER_ACCOUNT_ID, previewAccountId, setPreviewTier as persistPreviewTier, type PreviewTier } from "@/lib/membership/account";
+import { accessibleBrands } from "@/lib/membership/entitlements";
+import { LIVE_BRAND_IDS } from "@/lib/membership/brands";
 import { canSee, canUse, isAdminView, lockReason, viewerFor, type Viewer } from "@/lib/membership/access";
 import type { AccessTier, BrandId, Category, Course, DownloadRecord, LessonProgress, MemberAccount, Product, PublishStatus, Release, Resource } from "@/lib/membership/types";
 
@@ -21,6 +23,14 @@ export interface MemberContextValue {
   setPreviewTier: (t: PreviewTier) => void;
   /** Owner viewing as owner (admin controls visible). */
   isAdmin: boolean;
+  /** Every account in this browser (the owner plus local test profiles). */
+  accounts: MemberAccount[];
+  /** The test profile being previewed, if any. */
+  previewAccount: MemberAccount | null;
+  /** Live brands the current viewer can open. */
+  brands: BrandId[];
+  /** False for a moment after changing "View as", until the choice is stored. */
+  previewSaved: boolean;
   href: (path?: string) => string;
   adminHref: (path?: string) => string;
   canSee: (item: { status: PublishStatus; publishAt: string | null }) => boolean;
@@ -31,10 +41,11 @@ export interface MemberContextValue {
 const MemberContext = React.createContext<MemberContextValue | null>(null);
 
 export function MemberProvider({ brandId, children }: { brandId: BrandId; children: React.ReactNode }) {
-  const { data } = useMemberLive(async (r) => ({ account: await r.accounts.get(OWNER_ACCOUNT_ID), preview: (await r.kv.get<PreviewTier>("previewTier")) ?? "owner" }), []);
+  const { data } = useMemberLive(async (r) => ({ accounts: await r.accounts.list(), preview: (await r.kv.get<PreviewTier>("previewTier")) ?? "owner" }), []);
   const [optimistic, setOptimistic] = React.useState<PreviewTier | null>(null);
   const previewTier = optimistic ?? data?.preview ?? "owner";
-  const account = data?.account;
+  const accounts = data?.accounts;
+  const account = accounts?.find((a) => a.id === OWNER_ACCOUNT_ID);
 
   React.useEffect(() => {
     if (optimistic && data?.preview === optimistic) setOptimistic(null);
@@ -46,8 +57,12 @@ export function MemberProvider({ brandId, children }: { brandId: BrandId; childr
   }, []);
 
   const value = React.useMemo<MemberContextValue | null>(() => {
-    if (!account) return null;
-    const viewer = viewerFor(account, brandId, previewTier);
+    if (!account || !accounts) return null;
+    const pid = previewAccountId(previewTier);
+    const previewAccount = pid ? (accounts.find((a) => a.id === pid && a.role !== "owner") ?? null) : null;
+    // Previewing a test profile: their own access (membership, bundles, linked accounts) decides what shows.
+    const viewer: Viewer = previewAccount ? { ...viewerFor(previewAccount, brandId, "owner", accounts), previewing: true } : viewerFor(account, brandId, pid ? "owner" : (previewTier as AccessTier | "owner"));
+    const brands = (previewAccount ? accessibleBrands(previewAccount, accounts) : LIVE_BRAND_IDS).filter((b) => LIVE_BRAND_IDS.includes(b));
     return {
       brandId,
       brand: getBrand(brandId),
@@ -56,13 +71,17 @@ export function MemberProvider({ brandId, children }: { brandId: BrandId; childr
       previewTier,
       setPreviewTier,
       isAdmin: isAdminView(viewer),
+      accounts,
+      previewAccount,
+      brands,
+      previewSaved: optimistic === null,
       href: (p = "") => memberPath(brandId, p),
       adminHref: (p = "") => adminPath(brandId, p),
       canSee: (item) => canSee(viewer, item),
       canUse: (item) => canUse(viewer, item),
       lockReason: (item) => lockReason(viewer, item),
     };
-  }, [account, brandId, previewTier, setPreviewTier]);
+  }, [account, accounts, brandId, previewTier, setPreviewTier, optimistic]);
 
   if (!value) return null;
   return <MemberContext.Provider value={value}>{children}</MemberContext.Provider>;

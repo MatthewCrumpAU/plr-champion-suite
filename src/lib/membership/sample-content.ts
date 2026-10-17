@@ -892,6 +892,3 @@ export const CHAMPION_SAMPLE: SampleLibrary = {
   ],
 };
 
-export function sampleLibraryFor(brandId: string): SampleLibrary | null {
-  return brandId === "plr-champion" ? CHAMPION_SAMPLE : null;
-}

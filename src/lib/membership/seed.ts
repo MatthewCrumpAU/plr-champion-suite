@@ -8,8 +8,9 @@ import { bannerSvg, contentsSvg, coverSvg, svgBlob } from "./covers";
 import { defaultLicence, monthStart, newCourse, newProduct, newRelease, newResource, saveCategory, saveCourse, saveProduct, saveRelease, saveResource, deleteCategory, deleteCourse, deleteProduct, deleteRelease, deleteResource } from "./catalog";
 import { isEditableFile, storeMemberFile } from "./files";
 import { licenceText } from "./member-actions";
-import { sampleLibraryFor, type SampleChapter, type SampleFileSpec, type SampleProductDef } from "./sample-content";
-import type { BrandId, Course, Lesson, Product, ProductAttachment, ProductFileKind } from "./types";
+import type { SampleChapter, SampleFileSpec, SampleProductDef } from "./sample-content";
+import { sampleLibraryFor } from "./sample-libraries";
+import { PRODUCT_FORMAT_LABELS, type BrandId, type Course, type Lesson, type Product, type ProductAttachment, type ProductFileKind } from "./types";
 
 /**
  * Seeds a brand's sample library (categories, products with real DOCX/PDF files, monthly drops,
@@ -188,7 +189,7 @@ export async function seedSampleLibrary(brandId: BrandId, opts: SeedOptions = {}
       const f = await store(g.blob, g.name);
       files.push({ id: uid("att"), fileId: f.id, name: g.name, kind: KIND_FOR[spec], size: f.size, mime: f.mime, editable: isEditableFile(g.name) });
     }
-    const cover = await store(svgBlob(coverSvg({ title: def.title, subtitle: def.subtitle, kicker: def.format === "course" ? "Mini-course" : def.format === "checklist" ? "Guide + checklist" : def.format === "workbook" ? "Workbook" : "Ebook", brandName: brand.name, palette: def.palette, motif: def.motif })), `${slugify(def.title)}-cover.svg`);
+    const cover = await store(svgBlob(coverSvg({ title: def.title, subtitle: def.subtitle, kicker: def.format === "checklist" ? "Guide + checklist" : PRODUCT_FORMAT_LABELS[def.format], brandName: brand.name, palette: def.palette, motif: def.motif })), `${slugify(def.title)}-cover.svg`);
     const inside = await store(svgBlob(contentsSvg(def.title, def.chapters.map((c) => c.title), def.palette)), `${slugify(def.title)}-contents.svg`);
     const licence = { ...defaultLicence(def.licence), terms: def.licenceTerms };
     Object.assign(licence.rights, def.licenceOverrides ?? {});
