@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       const send = (ev: AIStreamEvent) => controller.enqueue(encoder.encode(JSON.stringify(ev) + "\n"));
       try {
         for await (const ev of provider.stream(
-          { system: prompt.system, messages: [{ role: "user", content: prompt.user }], model, maxTokens: prompt.maxTokens, temperature: prompt.temperature, task },
+          { system: prompt.system, messages: [{ role: "user", content: prompt.user }], model, maxTokens: prompt.maxTokens, task },
           abort.signal,
         )) {
           send(ev);

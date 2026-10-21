@@ -144,10 +144,10 @@ export function EditorWorkspace({ assetId, project }: { assetId: string; project
   // Leaving or hiding the page pushes any typed-but-unsynced text into the save queue.
   React.useEffect(() => {
     const onHide = () => {
-      if (pending.current) {
-        flush();
-        void doc.save();
-      }
+      // Push typed-but-unsynced text into the document, keep a synchronous copy, then save.
+      flush();
+      doc.keepUnsavedCopy();
+      void doc.save();
     };
     const onVisibility = () => document.visibilityState === "hidden" && onHide();
     window.addEventListener("pagehide", onHide);
