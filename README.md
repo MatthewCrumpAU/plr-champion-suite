@@ -21,6 +21,7 @@ It runs as a Next.js app (designed for Vercel). Your work is stored in your brow
 | **Marketing Studio** | **Sales Page Builder** (sections, live preview, standalone HTML export) · **Email Swipe Builder** (6 sequence types) · **Social Content Creator** (calendar) · **Product Name Generator** |
 | **Profit Studio** | **Profit Calculator** (scenarios, break-even, actual sales kept separate) · **Funnel Planner** (visual map, projections) · **Launch Planner** (tasks, milestones, templates, .ics calendar) · **Product Portfolio** |
 | **Memberships** | **PLR Champion** (`/m/plr-champion`) and **PLRforIM** (`/m/plrforim`) member areas, each with its own branding and library — product library, categories, advanced search, product pages, Download Manager, My Downloads, Training Centre, courses, resources, monthly drops and the studio tools; **Membership Admin** for products, categories, releases, training, resources and members & access (bundles, linked accounts, test profiles). See [docs/MEMBERSHIP.md](docs/MEMBERSHIP.md) |
+| **PLR Profit Lab** | `/m/plr-profit-lab` — **90-Day Profit Path** (personalised 13-week plan with daily tasks, milestones, progress and launch checklists), **Monthly Profit Campaign Drop** (Campaign Drop Creator, built from a PLR Editor project if you like, with a member preview and downloadable kit) and **PLR Profit Build Day** (workshop planner with agenda, resources, materials, checklists, action items and member progress). See [docs/PROFIT-LAB.md](docs/PROFIT-LAB.md) |
 | **Workspace** | **Projects** (create, edit, duplicate, archive, trash/restore, snapshots) · **Export Centre** (ZIP product packages, workspace/project backups and restore, export history) · **Settings** |
 
 Every tool works without AI, using templates, your source content and manual editing. When an Anthropic key is configured, AI buttons appear alongside — streaming output, model choice, token usage and estimated cost per request, and an approval step before anything replaces saved content.
@@ -70,6 +71,8 @@ src/components/     shell (sidebar, header), shared UI, charts
 src/lib/data/       types, repository interfaces, Dexie implementation, React hooks
 src/lib/services/   project/asset/version/backup/storage services, sample project
 src/lib/membership/ membership data model, brand config, access rules, search, catalogue, backup, sample library
+src/lib/lab/        PLR Profit Lab: Profit Path generator, campaigns, Build Days, sample content
+src/lib/integrations/ BYLDITY payloads and connector contract (not connected)
 src/lib/ai/         provider interface, Anthropic provider, tasks, prompts, model catalogue
 src/lib/auth/       password hashing, sessions, throttling, config checks
 src/lib/<domain>/   doc, import, export, covers, mockups, content, research, marketing, profit
@@ -92,5 +95,6 @@ For developers who do use a terminal, the equivalent commands are `npm run typec
 - [docs/STATUS.md](docs/STATUS.md) — completed features, what is not implemented, what was not tested
 - [docs/TESTING-CHECKLIST.md](docs/TESTING-CHECKLIST.md) — automated coverage and a manual checklist per tool
 - [docs/MEMBERSHIP.md](docs/MEMBERSHIP.md) — the PLR Champion and PLRforIM membership areas and their admin
+- [docs/PROFIT-LAB.md](docs/PROFIT-LAB.md) — PLR Profit Lab: 90-Day Profit Path, Campaign Drops and Build Days
 - [docs/DATABASE-MIGRATION.md](docs/DATABASE-MIGRATION.md) — plan for moving from browser storage to a server database later
 - [.env.example](.env.example) — every environment variable, explained

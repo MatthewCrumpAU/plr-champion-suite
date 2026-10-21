@@ -209,7 +209,8 @@ export function ProductCover({ product, className }: { product: Pick<Product, "c
 /* --------------------------------------- Markdown --------------------------------------- */
 export function Markdown({ source, className }: { source: string; className?: string }) {
   const html = React.useMemo(() => sanitizeHtml(markdownToHtml(source || "")), [source]);
-  return <div className={cn("plr-doc text-[15px] leading-relaxed", className)} dangerouslySetInnerHTML={{ __html: html }} />;
+  // .plr-doc is the editor's typography; read-only text shouldn't take the editor's 60vh minimum height.
+  return <div className={cn("plr-doc text-[15px] leading-relaxed", className)} style={/\bmin-h-/.test(className ?? "") ? undefined : { minHeight: 0 }} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /* ---------------------------------------- Licence --------------------------------------- */

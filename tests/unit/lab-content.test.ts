@@ -233,6 +233,7 @@ describe("build days", () => {
     const b = await saveBuildDay(newBuildDay("plr-profit-lab", M, { joinUrl: "https://meet.example.com/x", materials: [mat], startsAt: new Date(2026, 10, 14, 9, 30).toISOString(), status: "published" }), repos);
     const next = (await duplicateBuildDay(b.id, undefined, repos))!;
     expect(next.month).toBe("2026-12");
+    expect(next.title).toBe("December 2026 Build Day");
     expect(next.status).toBe("draft");
     expect(next.joinUrl).toBe("");
     expect(new Date(next.startsAt).getHours()).toBe(9);

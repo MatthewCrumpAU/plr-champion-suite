@@ -296,7 +296,8 @@ export async function duplicateBuildDay(id: string, month?: string, repos?: Memb
   const b: BuildDay = {
     ...deepClone(src),
     id: uid("bd"),
-    title: `${monthLabel(target)} Build Day`,
+    // A default "<Month> Build Day" title moves with the month; a named Build Day keeps its name to edit.
+    title: src.title === `${monthLabel(src.month)} Build Day` ? `${monthLabel(target)} Build Day` : src.title,
     month: target,
     startsAt: nextStart.toISOString(),
     joinUrl: "",

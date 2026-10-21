@@ -11,7 +11,8 @@ This is the completed / not-completed report the build brief asked for. "Verifie
 - All **22 tools** in the six studios, the Dashboard and the three Workspace pages (Projects, Export Centre, Settings) are built, use one shared project system, save automatically to browser storage, survive a page refresh, and export real files.
 - **Private owner login** (env-var password or hash, signed HttpOnly session cookie, CSRF and origin checks, throttling and lockout) protects every page and API route.
 - **AI is optional.** Every tool works without it. With an Anthropic key, AI runs server-side with streaming, model choice, usage and estimated cost, and approval before anything replaces saved content.
-- **Checks:** type check clean, lint clean (zero warnings), 111 unit tests passing, production build passing, 45 browser end-to-end tests passing. Every tool and every membership page was also checked at phone width (390 px) for layout overflow.
+- **Three branded memberships** — PLR Champion, PLRforIM and PLR Profit Lab (90-Day Profit Path, Monthly Profit Campaign Drops, PLR Profit Build Days) — share one membership system with per-brand data, access levels, bundles and backups. Everything still runs without a hosted database, payments or external services.
+- **Checks:** type check clean, lint clean (zero warnings), 156 unit tests passing, production build passing, 57 browser end-to-end tests passing. Every tool and every membership page was also checked at phone width (390 px) for layout overflow.
 
 ---
 
@@ -70,13 +71,23 @@ This is the completed / not-completed report the build brief asked for. "Verifie
 - Brand switcher that keeps your place; brand-isolated data and backups.
 - Members & access: bundles (PLR Champion + PLRforIM), linked accounts and per-brand tiers resolved by one entitlements module; local test profiles to preview a PLRforIM-only buyer, a linked buyer or a bundle buyer. No live cross-brand sign-in.
 
+### Ecosystem Phase 4 — PLR Profit Lab
+- Third branded member area at `/m/plr-profit-lab` (green/gold theme, own mark) with its own dashboard, training, resources, admin, backups and customers. Library areas are switched off for this brand, and Profit Lab areas are switched off for the other two ("Not part of …" page); the brand switcher falls back to the dashboard when a section doesn't exist on the other brand.
+- **90-Day Profit Path:** five-step questionnaire (experience, working hours and days, existing products and assets, business model, launch goals) with a live preview; a deterministic 13-week plan with weekly milestones, daily tasks fitted to the member's hours, 1–3 launches with launch checklists, and goal maths labelled as example maths. Today / This week / 13 weeks / Launch checklists / Your answers views; ticks, streaks, status, custom tasks, skipping, weekly reflections, re-planning that keeps ticks, Markdown/CSV/.ics exports. The owner sets up and checks test members' plans through **Admin → Profit Path profiles** and View as.
+- **Monthly Profit Campaign Drop:** Campaign Drop Creator with all ten parts (featured product, rebranding instructions, positioning, sales-page copy, email sequence, social content, lead magnet, bonus materials, launch checklist, promotional calendar), created from a template or **from a PLR Editor project**, regenerate per section, duplicate, schedule/release and access levels. Members get a "What's included" preview, every section in full with copy buttons, a tickable checklist, a dated calendar (.ics/CSV), the whole kit as a ZIP and **Start it in the studio** (creates a project with sales page, emails, posts, launch plan and the imported product).
+- **PLR Profit Build Day:** planner with agenda builder (real session times), session resources, materials, implementation checklist, action items, meeting and recording links (no built-in streaming), community settings stored for later, announcement scheduling, "Plan next month", run sheet, invite and member pack, and an attendees panel. Members get a countdown, RSVP, add-to-calendar, join link, agenda, downloads, checklist, action items (plus their own), a private wins journal and progress.
+- **BYLDITY interfaces:** typed payloads for ByldSend, ByldPages, Byld Countdown and ByldFlow and a connector contract; the campaign editor shows and downloads each payload. Nothing is connected or sent.
+- New *Complete PLR Business bundle* (premium on all three brands); membership database schema v2 and backup format v2 (v1 backups still restore); original sample campaigns, Build Days and two sample members with their own plans. Details: [PROFIT-LAB.md](PROFIT-LAB.md).
+
 ---
 
 ## Not implemented
 
 | Item | Why |
 | --- | --- |
-| PLR Profit Lab | Phase 4 of the ecosystem brief. The PLR Champion (Phase 2) and PLRforIM (Phase 3) memberships are built — see [MEMBERSHIP.md](MEMBERSHIP.md). |
+| Member-facing versions of the studio tools | Profit Path tasks and campaigns link to tools such as the Sales Page Builder and Launch Planner, which open the owner studio; *Start it in the studio* creates projects in the owner's studio. Real members will need their own workspaces. See [PROFIT-LAB.md](PROFIT-LAB.md#still-to-do-before-members-can-use-it-for-real). |
+| Build Day community feed, live streaming | Build Days use your own meeting link; community fields are stored for a later discussion feed and the wins journal is private for now. |
+| AI-written campaign copy | Campaigns use editable templates and the project's own copy. |
 | Member sign-up, subscriptions, payments, cross-brand sign-in | Excluded by the brief for private testing. The account model (per-brand access levels, bundles, linked accounts) is built and testable with local test profiles. |
 | Server or cloud database, multi-device sync | Excluded by the brief (no cloud database). Data lives in one browser; move it with backup/restore. Plan: [DATABASE-MIGRATION.md](DATABASE-MIGRATION.md). |
 | Live keyword metrics (search volume, competition, CPC) | Not fabricated. Import them from your own keyword tool's CSV. A server-side provider interface and API route exist, with no provider bundled. |
@@ -86,7 +97,7 @@ This is the completed / not-completed report the build brief asked for. "Verifie
 | OCR for scanned/image-only PDFs | Such files are detected and reported honestly; text isn't invented. |
 | AI image generation | Covers and mockups use templates, your images and brand kits. |
 | Image export of the funnel diagram | Funnels export as Markdown summary and JSON; take a screenshot for an image. |
-| BYLDITY integration | Excluded by the brief. |
+| BYLDITY integration | Interfaces and payloads are prepared (Campaign Drop handoff panel); no app is connected. Connecting one needs your explicit configuration and server-side keys. |
 
 ## Not tested
 
