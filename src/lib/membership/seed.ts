@@ -10,6 +10,7 @@ import { isEditableFile, storeMemberFile } from "./files";
 import { licenceText } from "./member-actions";
 import type { SampleChapter, SampleFileSpec, SampleProductDef } from "./sample-content";
 import { sampleLibraryFor } from "./sample-libraries";
+import { LAB_SAMPLE_STEPS, removeLabSamples, seedLabSamples } from "@/lib/lab/seed";
 import { PRODUCT_FORMAT_LABELS, type BrandId, type Course, type Lesson, type Product, type ProductAttachment, type ProductFileKind } from "./types";
 
 /**
@@ -49,6 +50,10 @@ export interface SeedSummary {
   courses: number;
   resources: number;
   files: number;
+  /** PLR Profit Lab samples (only for brands with the lab switched on). */
+  campaigns?: number;
+  buildDays?: number;
+  members?: number;
 }
 
 /* ---------------------------------------- Documents ---------------------------------------- */
@@ -149,7 +154,7 @@ export async function seedSampleLibrary(brandId: BrandId, opts: SeedOptions = {}
   const now = opts.now ?? new Date();
   const render = opts.render ?? defaultRenderer;
   const brand = getBrand(brandId);
-  const total = lib.products.length + lib.courses.length + lib.resources.length + lib.drops.length + 1;
+  const total = lib.products.length + lib.courses.length + lib.resources.length + lib.drops.length + 1 + (brand.features.lab ? LAB_SAMPLE_STEPS : 0);
   let done = 0;
   const tick = (label: string) => opts.onProgress?.(label, ++done, total);
   const store = async (blob: Blob, name: string) => {
@@ -271,6 +276,13 @@ export async function seedSampleLibrary(brandId: BrandId, opts: SeedOptions = {}
     tick(res.title);
   }
 
+  // PLR Profit Lab: sample campaign drops, Build Days and sample members.
+  if (brand.features.lab) {
+    const lab = await seedLabSamples(brandId, { repos: r, now, render, onStep: tick });
+    summary.files += lab.files;
+    Object.assign(summary, { campaigns: lab.campaigns, buildDays: lab.buildDays, members: lab.members });
+  }
+
   await r.kv.set(SEED_KEY(brandId), { version: SEED_VERSION, at: nowIso() });
   return summary;
 }
@@ -295,6 +307,7 @@ export async function removeSampleContent(brandId: BrandId, repos?: MembershipRe
     await deleteResource(res.id, r);
     n++;
   }
+  if (getBrand(brandId).features.lab) n += await removeLabSamples(brandId, r);
   // Sample categories are removed only when nothing else uses them.
   const lib = sampleLibraryFor(brandId);
   const sampleNames = new Set(lib?.categories.map((c) => c.name) ?? []);

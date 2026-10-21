@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeftRight, ChevronsUpDown, Eye, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, ShieldCheck, TriangleAlert, Users, X } from "lucide-react";
+import { ArrowLeftRight, ChevronsUpDown, Eye, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search, ShieldCheck, SquareSlash, TriangleAlert, Users, X } from "lucide-react";
 import { Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input, Progress, Spinner } from "@/components/ui/primitives";
@@ -19,7 +19,7 @@ import type { PreviewTier } from "@/lib/membership/account";
 import type { BrandId } from "@/lib/membership/types";
 import { cn, errorMessage } from "@/lib/utils";
 import { MemberProvider, useMember } from "./member-context";
-import { memberNav, memberToolRoutes } from "./member-nav";
+import { memberNav, memberToolRoutes, routeAllowed } from "./member-nav";
 import { BrandLogo, BrandMark } from "./ui";
 
 const PREVIEW_OPTIONS: { value: PreviewTier; label: string; hint: string }[] = [
@@ -201,9 +201,11 @@ function BrandSwitcher() {
         <DropdownMenuLabel>{m.viewer.previewing && m.previewAccount ? `${m.previewAccount.displayName}'s memberships` : "Your memberships"}</DropdownMenuLabel>
         {[m.brandId, ...others].map((b) => {
           const brand = getBrand(b);
+          // Brands offer different areas (a library, or the Profit Lab); fall back to the dashboard.
+          const target = routeAllowed(brand, section.join("/")) ? section.join("/") : "";
           return (
             <DropdownMenuItem key={b} asChild className={cn(b === m.brandId && "bg-secondary")}>
-              <Link href={memberPath(b, section.join("/"))} data-testid={`switch-${b}`}>
+              <Link href={memberPath(b, target)} data-testid={`switch-${b}`}>
                 <BrandMark brand={brand} className="size-6 rounded-md text-[10px]" />
                 <span className="grid grid-cols-1">
                   <span className="font-medium">{brand.name}</span>
@@ -244,10 +246,28 @@ function NoBrandAccess() {
   );
 }
 
+/** Shown for an area this brand doesn't offer (e.g. the library inside PLR Profit Lab). */
+function NotInThisMembership() {
+  const m = useMember();
+  return (
+    <div className="mx-auto mt-16 max-w-lg px-4 text-center" data-testid="not-in-membership">
+      <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary-soft text-primary">
+        <SquareSlash className="size-6" />
+      </div>
+      <h1 className="mt-4 text-xl font-semibold tracking-tight">Not part of {m.brand.name}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">This area belongs to another membership. Each brand offers its own areas — {m.brand.features.lab ? "PLR Profit Lab is about putting PLR to work: your Profit Path, Campaign Drops and Build Days." : "the Profit Path, Campaign Drops and Build Days are part of PLR Profit Lab."}</p>
+      <Button asChild className="mt-5">
+        <Link href={m.href()}>Go to the {m.brand.shortName} dashboard</Link>
+      </Button>
+    </div>
+  );
+}
+
 function HeaderSearch() {
   const m = useMember();
   const router = useRouter();
   const [q, setQ] = React.useState("");
+  if (!m.brand.features.library) return null;
   return (
     <form
       role="search"
@@ -271,6 +291,7 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
   const [collapsedPref, setCollapsedPref] = React.useState<"expanded" | "collapsed" | null>(null);
   const base = m.href();
   const toolRoute = pathname.startsWith(`${base}/tools/`);
+  const allowed = routeAllowed(m.brand, pathname.slice(base.length));
   const wideTool = /\/tools\/(editor|profit-map)/.test(pathname);
   const collapsed = collapsedPref ? collapsedPref === "collapsed" : wideTool;
 
@@ -316,7 +337,7 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
           </div>
         )}
         <main id="main" className="plr-scroll relative min-h-0 flex-1 overflow-y-auto" data-preview-saved={m.previewSaved}>
-          {m.viewer.tier === null ? <NoBrandAccess /> : children}
+          {m.viewer.tier === null ? <NoBrandAccess /> : allowed ? children : <NotInThisMembership />}
         </main>
       </div>
     </div>

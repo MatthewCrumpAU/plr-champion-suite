@@ -3,6 +3,7 @@ import { z } from "zod";
 import { nowIso } from "@/lib/utils";
 import { getMembershipRepos, type MembershipRepositories } from "./db";
 import { BRAND_IDS, type BrandId, type Category, type Course, type DownloadRecord, type Favourite, type LessonProgress, type MemberFile, type Product, type Release, type Resource } from "./types";
+import type { BuildDay, CampaignDrop, LabProgress, ProfitPathProfile } from "@/lib/lab/types";
 
 /**
  * Membership backup: one ZIP with `membership.json` (records) and `files/<id>` (binaries).
@@ -10,7 +11,8 @@ import { BRAND_IDS, type BrandId, type Category, type Course, type DownloadRecor
  */
 
 export const MEMBERSHIP_BACKUP_FORMAT = "plr-champion-membership-backup";
-export const MEMBERSHIP_BACKUP_VERSION = 1;
+/** Version 2 adds the PLR Profit Lab tables; version 1 backups still restore. */
+export const MEMBERSHIP_BACKUP_VERSION = 2;
 
 const brandSchema = z.enum(BRAND_IDS as [BrandId, ...BrandId[]]);
 const row = z.object({ id: z.string().min(1).max(200), brandId: brandSchema }).passthrough();
@@ -29,6 +31,10 @@ const manifestSchema = z.object({
   downloads: z.array(row).default([]),
   progress: z.array(row).default([]),
   favourites: z.array(row).default([]),
+  labProfiles: z.array(row).default([]),
+  labProgress: z.array(row).default([]),
+  campaigns: z.array(row).default([]),
+  buildDays: z.array(row).default([]),
   files: z.array(fileMeta),
 });
 
@@ -42,13 +48,15 @@ export interface MembershipBackupSummary {
   releases: number;
   courses: number;
   resources: number;
+  campaigns: number;
+  buildDays: number;
   files: number;
   bytes: number;
 }
 
 export async function createMembershipBackup(brandId: BrandId, repos?: MembershipRepositories): Promise<{ blob: Blob; fileName: string; summary: MembershipBackupSummary }> {
   const r = repos ?? getMembershipRepos();
-  const [categories, products, releases, courses, resources, downloads, progress, favourites] = await Promise.all([
+  const [categories, products, releases, courses, resources, downloads, progress, favourites, labProfiles, labProgress, campaigns, buildDays] = await Promise.all([
     r.categories.list(brandId),
     r.products.list(brandId),
     r.releases.list(brandId),
@@ -57,6 +65,10 @@ export async function createMembershipBackup(brandId: BrandId, repos?: Membershi
     r.downloads.list(brandId),
     r.progress.list(brandId),
     r.favourites.list(brandId),
+    r.labProfiles.list(brandId),
+    r.labProgress.list(brandId),
+    r.campaigns.list(brandId),
+    r.buildDays.list(brandId),
   ]);
   const files = (await r.files.listAll()).filter((f) => f.brandId === brandId);
   const zip = new JSZip();
@@ -73,6 +85,10 @@ export async function createMembershipBackup(brandId: BrandId, repos?: Membershi
     downloads,
     progress,
     favourites,
+    labProfiles,
+    labProgress,
+    campaigns,
+    buildDays,
     files: files.map(({ blob: _b, ...meta }) => meta),
   } as unknown as MembershipManifest;
   zip.file("membership.json", JSON.stringify(manifest, null, 1));
@@ -83,7 +99,7 @@ export async function createMembershipBackup(brandId: BrandId, repos?: Membershi
 }
 
 function summarise(m: MembershipManifest, bytes: number): MembershipBackupSummary {
-  return { brandId: m.brandId, createdAt: m.createdAt, products: m.products.length, categories: m.categories.length, releases: m.releases.length, courses: m.courses.length, resources: m.resources.length, files: m.files.length, bytes };
+  return { brandId: m.brandId, createdAt: m.createdAt, products: m.products.length, categories: m.categories.length, releases: m.releases.length, courses: m.courses.length, resources: m.resources.length, campaigns: m.campaigns.length, buildDays: m.buildDays.length, files: m.files.length, bytes };
 }
 
 export interface ParsedMembershipBackup {
@@ -110,7 +126,7 @@ export async function parseMembershipBackup(file: Blob): Promise<ParsedMembershi
   const parsed = manifestSchema.safeParse(raw);
   if (!parsed.success) throw new Error(`This backup can't be restored: ${parsed.error.issues[0]?.path.join(".") || "format"} is invalid.`);
   const m = parsed.data;
-  const wrongBrand = [...m.categories, ...m.products, ...m.releases, ...m.courses, ...m.resources].some((x) => x.brandId !== m.brandId);
+  const wrongBrand = [...m.categories, ...m.products, ...m.releases, ...m.courses, ...m.resources, ...m.labProfiles, ...m.labProgress, ...m.campaigns, ...m.buildDays].some((x) => x.brandId !== m.brandId);
   if (wrongBrand) throw new Error("This backup mixes records from different brands and can't be restored.");
   return { manifest: m, zip, summary: summarise(m, file.size) };
 }
@@ -143,6 +159,10 @@ export async function restoreMembershipBackup(parsed: ParsedMembershipBackup, mo
       downloads: (await r.downloads.list(targetBrand)).map((x) => x.id),
       progress: (await r.progress.list(targetBrand)).map((x) => x.id),
       favourites: (await r.favourites.list(targetBrand)).map((x) => x.id),
+      labProfiles: (await r.labProfiles.list(targetBrand)).map((x) => x.id),
+      labProgress: (await r.labProgress.list(targetBrand)).map((x) => x.id),
+      campaigns: (await r.campaigns.list(targetBrand)).map((x) => x.id),
+      buildDays: (await r.buildDays.list(targetBrand)).map((x) => x.id),
     };
     const fileIds = (await r.files.listMeta()).filter((f) => f.brandId === targetBrand).map((f) => f.id);
     await r.transaction(async () => {
@@ -154,6 +174,10 @@ export async function restoreMembershipBackup(parsed: ParsedMembershipBackup, mo
       for (const id of ids.downloads) await r.downloads.delete(id);
       for (const id of ids.progress) await r.progress.delete(id);
       for (const id of ids.favourites) await r.favourites.delete(id);
+      for (const id of ids.labProfiles) await r.labProfiles.delete(id);
+      for (const id of ids.labProgress) await r.labProgress.delete(id);
+      for (const id of ids.campaigns) await r.campaigns.delete(id);
+      for (const id of ids.buildDays) await r.buildDays.delete(id);
       for (const id of fileIds) await r.files.delete(id);
     });
   }
@@ -167,6 +191,10 @@ export async function restoreMembershipBackup(parsed: ParsedMembershipBackup, mo
     await r.downloads.bulkPut(m.downloads as unknown as DownloadRecord[]);
     await r.progress.bulkPut(m.progress as unknown as LessonProgress[]);
     await r.favourites.bulkPut(m.favourites as unknown as Favourite[]);
+    await r.labProfiles.bulkPut(m.labProfiles as unknown as ProfitPathProfile[]);
+    await r.labProgress.bulkPut(m.labProgress as unknown as LabProgress[]);
+    await r.campaigns.bulkPut(m.campaigns as unknown as CampaignDrop[]);
+    await r.buildDays.bulkPut(m.buildDays as unknown as BuildDay[]);
   });
   // A restored library counts as seeded, so samples aren't added on top of it.
   await r.kv.set(`seed:${targetBrand}`, { version: 1, at: nowIso(), restored: true });

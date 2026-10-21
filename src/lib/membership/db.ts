@@ -1,5 +1,6 @@
 import Dexie, { type Table } from "dexie";
 import type { BrandId, Category, Course, DownloadRecord, Favourite, KV, LessonProgress, MemberAccount, MemberFile, Product, Release, Resource } from "./types";
+import type { BuildDay, CampaignDrop, LabProgress, ProfitPathProfile } from "@/lib/lab/types";
 
 /**
  * Membership data lives in its own IndexedDB database, separate from the studio's projects.
@@ -20,6 +21,11 @@ export class MembershipDatabase extends Dexie {
   accounts!: Table<MemberAccount, string>;
   files!: Table<MemberFile, string>;
   kv!: Table<KV, string>;
+  /** PLR Profit Lab (schema version 2). */
+  labProfiles!: Table<ProfitPathProfile, string>;
+  labProgress!: Table<LabProgress, string>;
+  campaigns!: Table<CampaignDrop, string>;
+  buildDays!: Table<BuildDay, string>;
 
   constructor(name = MEMBERSHIP_DB_NAME) {
     super(name);
@@ -35,6 +41,13 @@ export class MembershipDatabase extends Dexie {
       accounts: "id, email",
       files: "id, brandId",
       kv: "key",
+    });
+    // Version 2 adds the PLR Profit Lab tables. Existing tables and data are kept as they are.
+    this.version(2).stores({
+      labProfiles: "id, brandId, memberId",
+      labProgress: "id, brandId, memberId, kind, refId",
+      campaigns: "id, brandId, month, status",
+      buildDays: "id, brandId, month, status, startsAt",
     });
   }
 }
@@ -58,6 +71,10 @@ export interface MembershipRepositories {
   downloads: BrandScopedRepo<DownloadRecord> & { listForMember(brandId: BrandId, memberId: string): Promise<DownloadRecord[]> };
   progress: BrandScopedRepo<LessonProgress> & { listForMember(brandId: BrandId, memberId: string): Promise<LessonProgress[]> };
   favourites: BrandScopedRepo<Favourite> & { listForMember(brandId: BrandId, memberId: string): Promise<Favourite[]> };
+  labProfiles: BrandScopedRepo<ProfitPathProfile> & { listForMember(brandId: BrandId, memberId: string): Promise<ProfitPathProfile[]> };
+  labProgress: BrandScopedRepo<LabProgress> & { listForMember(brandId: BrandId, memberId: string): Promise<LabProgress[]> };
+  campaigns: BrandScopedRepo<CampaignDrop>;
+  buildDays: BrandScopedRepo<BuildDay>;
   accounts: {
     list(): Promise<MemberAccount[]>;
     get(id: string): Promise<MemberAccount | undefined>;
@@ -118,6 +135,10 @@ export function createMembershipRepositories(db: MembershipDatabase): Membership
     downloads: memberScoped(db.downloads),
     progress: memberScoped(db.progress),
     favourites: memberScoped(db.favourites),
+    labProfiles: memberScoped(db.labProfiles),
+    labProgress: memberScoped(db.labProgress),
+    campaigns: scoped(db.campaigns),
+    buildDays: scoped(db.buildDays),
     accounts: {
       list: () => db.accounts.toArray(),
       get: (id) => db.accounts.get(id),

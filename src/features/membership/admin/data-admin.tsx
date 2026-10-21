@@ -27,6 +27,7 @@ export function DataAdmin() {
 function Inner() {
   const m = useMember();
   const confirm = useConfirm();
+  const lab = m.brand.features.lab;
   const [busy, setBusy] = React.useState<string | null>(null);
   const [parsed, setParsed] = React.useState<ParsedMembershipBackup | null>(null);
   const [seedProgress, setSeedProgress] = React.useState<{ done: number; total: number; label: string } | null>(null);
@@ -34,8 +35,9 @@ function Inner() {
   const { data: stats } = useMemberLive(
     async (r) => {
       const files = (await r.files.listMeta()).filter((f) => f.brandId === m.brandId);
-      const products = await r.products.list(m.brandId);
-      return { bytes: files.reduce((n, f) => n + f.size, 0), files: files.length, samples: products.filter((p) => p.isSample).length, products: products.length };
+      const [products, campaigns, buildDays] = await Promise.all([r.products.list(m.brandId), r.campaigns.list(m.brandId), r.buildDays.list(m.brandId)]);
+      const labSamples = campaigns.filter((c) => c.isSample).length + buildDays.filter((b) => b.isSample).length;
+      return { bytes: files.reduce((n, f) => n + f.size, 0), files: files.length, samples: products.filter((p) => p.isSample).length + labSamples, products: products.length, campaigns: campaigns.length, buildDays: buildDays.length };
     },
     [m.brandId],
   );
@@ -52,7 +54,7 @@ function Inner() {
     try {
       const { blob, fileName, summary } = await createMembershipBackup(m.brandId);
       downloadBlob(blob, fileName);
-      toast.success("Backup downloaded", { description: `${plural(summary.products, "product")} · ${plural(summary.files, "file")} · ${formatBytes(summary.bytes)}` });
+      toast.success("Backup downloaded", { description: `${lab ? `${plural(summary.campaigns ?? 0, "campaign")} · ${plural(summary.buildDays ?? 0, "Build Day")}` : plural(summary.products, "product")} · ${plural(summary.files, "file")} · ${formatBytes(summary.bytes)}` });
     } catch (e) {
       toast.error(errorMessage(e));
     } finally {
@@ -62,11 +64,11 @@ function Inner() {
 
   const restore = async (mode: MembershipRestoreMode) => {
     if (!parsed) return;
-    if (mode === "replace" && !(await confirm({ title: "Replace this brand's library?", description: `All current ${m.brand.name} products, categories, releases, training, resources and member activity in this browser are replaced by the backup. Other brands and your studio projects aren't affected.`, confirmLabel: "Replace library", destructive: true, typeToConfirm: "REPLACE" }))) return;
+    if (mode === "replace" && !(await confirm({ title: "Replace this brand's library?", description: `All current ${m.brand.name} ${lab ? "campaigns, Build Days, Profit Path plans" : "products, categories, releases"}, training, resources and member activity in this browser are replaced by the backup. Other brands and your studio projects aren't affected.`, confirmLabel: "Replace library", destructive: true, typeToConfirm: "REPLACE" }))) return;
     setBusy("restore");
     try {
       const s = await restoreMembershipBackup(parsed, mode, m.brandId);
-      toast.success("Backup restored", { description: `${plural(s.products, "product")} · ${plural(s.releases, "release")} · ${plural(s.courses, "course")}` });
+      toast.success("Backup restored", { description: lab ? `${plural(s.campaigns ?? 0, "campaign")} · ${plural(s.buildDays ?? 0, "Build Day")} · ${plural(s.courses, "course")}` : `${plural(s.products, "product")} · ${plural(s.releases, "release")} · ${plural(s.courses, "course")}` });
       setParsed(null);
     } catch (e) {
       toast.error(errorMessage(e));
@@ -88,7 +90,7 @@ function Inner() {
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-3 text-sm">
             <p>
-              {plural(stats?.products ?? 0, "product")} and {plural(stats?.files ?? 0, "stored file")} use <strong>{formatBytes(stats?.bytes ?? 0)}</strong>.
+              {lab ? `${plural(stats?.campaigns ?? 0, "campaign")}, ${plural(stats?.buildDays ?? 0, "Build Day")}` : plural(stats?.products ?? 0, "product")} and {plural(stats?.files ?? 0, "stored file")} use <strong>{formatBytes(stats?.bytes ?? 0)}</strong>.
             </p>
             {estimate && (
               <div>
@@ -106,7 +108,7 @@ function Inner() {
             <CardTitle className="flex items-center gap-2">
               <DatabaseBackup className="size-4" /> Backup and restore
             </CardTitle>
-            <CardDescription>One ZIP with every product, image, file, release, course and resource for {m.brand.name}. Studio projects have their own backup in the Export Centre.</CardDescription>
+            <CardDescription>One ZIP with every {lab ? "campaign, Build Day, Profit Path plan and member progress record" : "product, image, file, release"}, course and resource for {m.brand.name}. Studio projects have their own backup in the Export Centre.</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-4">
             <Button onClick={backup} loading={busy === "backup"} className="justify-self-start" data-testid="membership-backup">
@@ -142,7 +144,7 @@ function Inner() {
                   </div>
                 }
               >
-                {plural(parsed.summary.products, "product")}, {plural(parsed.summary.categories, "category", "categories")}, {plural(parsed.summary.releases, "release")}, {plural(parsed.summary.courses, "course")}, {plural(parsed.summary.files, "file")}. <em>Merge</em> adds and updates items; <em>Replace</em> swaps the whole library.
+                {lab ? `${plural(parsed.summary.campaigns ?? 0, "campaign")}, ${plural(parsed.summary.buildDays ?? 0, "Build Day")}` : `${plural(parsed.summary.products, "product")}, ${plural(parsed.summary.categories, "category", "categories")}, ${plural(parsed.summary.releases, "release")}`}, {plural(parsed.summary.courses, "course")}, {plural(parsed.summary.files, "file")}. <em>Merge</em> adds and updates items; <em>Replace</em> swaps the whole library.
               </Callout>
             )}
           </CardContent>
@@ -156,7 +158,7 @@ function Inner() {
             <CardDescription>The sample library is original demonstration content for testing. Remove it before you load real products, or recreate it to start testing again. Products you created are never touched.</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-3">
-            <p className="text-sm text-muted-foreground">{plural(stats?.samples ?? 0, "sample product")} in the library.</p>
+            <p className="text-sm text-muted-foreground">{plural(stats?.samples ?? 0, lab ? "sample campaign or Build Day" : "sample product", lab ? "sample campaigns and Build Days" : undefined)} {lab ? "(plus two sample members with their own Profit Path)" : "in the library"}.</p>
             {seedProgress && (
               <div>
                 <Progress value={(seedProgress.done / seedProgress.total) * 100} />
@@ -169,7 +171,7 @@ function Inner() {
                 disabled={!!busy || !stats?.samples}
                 loading={busy === "remove"}
                 onClick={async () => {
-                  if (!(await confirm({ title: "Remove all sample content?", description: "Sample products, drops, courses and resources are deleted along with their files.", confirmLabel: "Remove samples", destructive: true }))) return;
+                  if (!(await confirm({ title: "Remove all sample content?", description: lab ? "Sample campaigns, Build Days, courses, resources and the two sample members (with their plans and progress) are deleted along with their files." : "Sample products, drops, courses and resources are deleted along with their files.", confirmLabel: "Remove samples", destructive: true }))) return;
                   setBusy("remove");
                   try {
                     const n = await removeSampleContent(m.brandId);
@@ -193,7 +195,7 @@ function Inner() {
                   setBusy("reset");
                   try {
                     const s = await resetSampleContent(m.brandId, { onProgress: (label, done, total) => setSeedProgress({ label, done, total }) });
-                    toast.success(`Created ${plural(s.products, "sample product")}`);
+                    toast.success(lab ? `Created ${plural(s.campaigns ?? 0, "sample campaign")} and ${plural(s.buildDays ?? 0, "Build Day")}` : `Created ${plural(s.products, "sample product")}`);
                   } catch (e) {
                     toast.error(errorMessage(e));
                   } finally {
@@ -225,10 +227,10 @@ function Inner() {
                 try {
                   const r = getMembershipRepos();
                   const b = m.brandId;
-                  const lists = await Promise.all([r.products.list(b), r.categories.list(b), r.releases.list(b), r.courses.list(b), r.resources.list(b), r.downloads.list(b), r.progress.list(b), r.favourites.list(b)]);
+                  const repos = [r.products, r.categories, r.releases, r.courses, r.resources, r.downloads, r.progress, r.favourites, r.campaigns, r.buildDays, r.labProfiles, r.labProgress] as const;
+                  const lists = await Promise.all(repos.map((repo) => repo.list(b)));
                   const files = (await r.files.listMeta()).filter((f) => f.brandId === b);
                   await r.transaction(async () => {
-                    const repos = [r.products, r.categories, r.releases, r.courses, r.resources, r.downloads, r.progress, r.favourites] as const;
                     for (const [i, list] of lists.entries()) for (const row of list) await repos[i].delete(row.id);
                     for (const f of files) await r.files.delete(f.id);
                     // Keep the sample library from being re-added automatically.

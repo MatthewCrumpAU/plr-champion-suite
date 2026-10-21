@@ -36,10 +36,14 @@ export interface BrandConfig {
   dropName: string;
   /** Areas switched on for this brand. */
   features: {
+    /** PLR product library: library, categories, search, Download Manager and product admin. */
+    library: boolean;
     tools: boolean;
     training: boolean;
     resources: boolean;
     drops: boolean;
+    /** PLR Profit Lab modules: 90-Day Profit Path, Monthly Profit Campaign Drops and Build Days. */
+    lab: boolean;
   };
 }
 
@@ -65,7 +69,7 @@ export const BRANDS: Record<BrandId, BrandConfig> = {
     domain: "plrchampion.com",
     supportEmail: "support@plrchampion.com",
     dropName: "Monthly Product Drop",
-    features: { tools: true, training: true, resources: true, drops: true },
+    features: { library: true, tools: true, training: true, resources: true, drops: true, lab: false },
   },
   plrforim: {
     id: "plrforim",
@@ -88,7 +92,30 @@ export const BRANDS: Record<BrandId, BrandConfig> = {
     domain: "plrforim.com",
     supportEmail: "support@plrforim.com",
     dropName: "Monthly IM Drop",
-    features: { tools: true, training: true, resources: true, drops: true },
+    features: { library: true, tools: true, training: true, resources: true, drops: true, lab: false },
+  },
+  "plr-profit-lab": {
+    id: "plr-profit-lab",
+    name: "PLR Profit Lab",
+    shortName: "Profit Lab",
+    tagline: "Hands-on PLR business implementation",
+    promise: "A 90-day plan built around your week, a done-for-you campaign every month and a Build Day to put it all to work.",
+    monogram: "PL",
+    theme: {
+      primary: "#15803d",
+      primaryForeground: "#ffffff",
+      primarySoft: "#e7f6ec",
+      accentForeground: "#116a32",
+      sidebar: "#0a140f",
+      sidebarAccent: "#132519",
+      sidebarBorder: "#1a3222",
+      sidebarMuted: "#82a08c",
+      highlight: "#f2b632",
+    },
+    domain: "plrprofitlab.com",
+    supportEmail: "support@plrprofitlab.com",
+    dropName: "Monthly Profit Campaign Drop",
+    features: { library: false, tools: true, training: true, resources: true, drops: false, lab: true },
   },
 };
 
@@ -97,7 +124,7 @@ export function isBrandId(v: string | null | undefined): v is BrandId {
 }
 
 /** Brands whose member area is switched on. */
-export const LIVE_BRAND_IDS: BrandId[] = ["plr-champion", "plrforim"];
+export const LIVE_BRAND_IDS: BrandId[] = ["plr-champion", "plrforim", "plr-profit-lab"];
 
 export function isLiveBrand(v: string | null | undefined): v is BrandId {
   return isBrandId(v) && LIVE_BRAND_IDS.includes(v);

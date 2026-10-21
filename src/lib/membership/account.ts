@@ -27,7 +27,7 @@ export async function ensureOwnerAccount(repos: MembershipRepositories = getMemb
     email: "owner@private.local",
     displayName: "Owner",
     role: "owner",
-    brandAccess: { "plr-champion": "premium", plrforim: "premium" },
+    brandAccess: { "plr-champion": "premium", plrforim: "premium", "plr-profit-lab": "premium" },
     linkedAccountIds: [],
     source: "owner",
     createdAt: now,

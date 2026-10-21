@@ -71,9 +71,31 @@ function ImMark({ className }: { className?: string }) {
   );
 }
 
+/** PLR Profit Lab mark: deep green tile with a gold path climbing through three milestones to a flag. */
+function LabMark({ className }: { className?: string }) {
+  const id = React.useId().replace(/:/g, "");
+  return (
+    <svg viewBox="0 0 40 40" className={cn("size-8 shrink-0", className)} aria-hidden="true">
+      <defs>
+        <linearGradient id={`lab-tile-${id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#22a356" />
+          <stop offset="1" stopColor="#0c4a24" />
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="10" fill={`url(#lab-tile-${id})`} />
+      <path d="M8 31 C 14 31, 14 23, 20 23 S 26 15, 30 13" stroke="#f2b632" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <circle cx="8.5" cy="31" r="2.4" fill="#ffffff" />
+      <circle cx="20" cy="23" r="2.4" fill="#ffffff" />
+      <path d="M30 13 V 6.5" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M30.6 6.6 L 35.5 8.6 L 30.6 10.6 Z" fill="#f2b632" />
+    </svg>
+  );
+}
+
 export function BrandMark({ brand, className }: { brand: BrandConfig; className?: string }) {
   if (brand.id === "plr-champion") return <LogoMark className={className} />;
   if (brand.id === "plrforim") return <ImMark className={className} />;
+  if (brand.id === "plr-profit-lab") return <LabMark className={className} />;
   return (
     <span
       aria-hidden
