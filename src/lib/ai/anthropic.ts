@@ -35,7 +35,7 @@ export class AnthropicProvider implements AIProvider {
           max_tokens: req.maxTokens,
           system: req.system,
           messages: req.messages,
-          ...(req.temperature != null ? { temperature: req.temperature } : {}),
+         
         },
         { signal },
       );
