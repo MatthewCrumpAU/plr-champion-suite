@@ -1,6 +1,7 @@
 "use client";
 
 import { escapeHtml } from "@/lib/utils";
+import { ensureReadableStreamIteration } from "./stream-iteration";
 
 /**
  * PDF text extraction with pdf.js. Rebuilds paragraphs and headings from text positions and font sizes,
@@ -38,6 +39,7 @@ interface RawItem {
 // The "legacy" build bundles polyfills, so imports work in every current browser (Chrome, Safari, Firefox, Edge).
 let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | null = null;
 async function loadPdfJs() {
+  ensureReadableStreamIteration();
   if (!pdfjsPromise) {
     pdfjsPromise = (import("pdfjs-dist/legacy/build/pdf.mjs") as unknown as Promise<typeof import("pdfjs-dist")>).then((pdfjs) => {
       pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).toString();
@@ -45,6 +47,31 @@ async function loadPdfJs() {
     });
   }
   return pdfjsPromise;
+}
+
+interface TextChunk {
+  items: unknown[];
+  styles: Record<string, { fontFamily?: string }>;
+}
+
+/**
+ * A page's text, read straight from pdf.js's text stream with a reader. Equivalent to
+ * page.getTextContent(), which loops with `for await` over the stream and fails in Safari.
+ */
+async function readTextContent(page: { streamTextContent: (params?: object) => ReadableStream<TextChunk> }): Promise<{ items: unknown[]; styles: Record<string, { fontFamily?: string }> }> {
+  const reader = page.streamTextContent().getReader();
+  const out = { items: [] as unknown[], styles: {} as Record<string, { fontFamily?: string }> };
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      Object.assign(out.styles, value.styles);
+      for (const item of value.items) out.items.push(item);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return out;
 }
 
 function median(values: number[]): number {
@@ -77,8 +104,8 @@ export async function extractPdf(data: ArrayBuffer, onProgress?: (page: number, 
     onProgress?.(p, pageCount);
     const page = await pdf.getPage(p);
     const viewport = page.getViewport({ scale: 1 });
-    const tc = await page.getTextContent();
-    const styles = (tc as unknown as { styles: Record<string, { fontFamily?: string }> }).styles ?? {};
+    const tc = await readTextContent(page as unknown as Parameters<typeof readTextContent>[0]);
+    const styles = tc.styles ?? {};
     const items = (tc.items as RawItem[]).filter((i) => typeof i.str === "string");
     const pageChars = items.reduce((n, i) => n + i.str.trim().length, 0);
     charCount += pageChars;
