@@ -65,6 +65,8 @@ test.describe("Phase 1 — core editor workflows", () => {
     await page.locator("input[aria-label='Replace with']").last().fill("attention");
     await page.getByTestId("apply-rules").click();
     await confirmDialog(page);
+    // A version is saved before the replacements are applied; wait for them to be applied, then saved.
+    await expect(page.getByText(/^Applied \d+ replacements? to all chapters$/)).toBeVisible();
     await waitSaved(page);
     await page.reload();
     await expect(page.getByTestId("chapter-row")).toHaveCount(4);
