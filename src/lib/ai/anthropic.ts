@@ -1,6 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import type { AIProvider, AIRequest, AIStreamEvent } from "./provider";
+import { anthropicParams } from "./request-params";
 
 function friendlyError(err: unknown): { message: string; retryable: boolean; status?: number } {
   if (err instanceof Anthropic.APIError) {
@@ -29,22 +30,28 @@ export class AnthropicProvider implements AIProvider {
   async *stream(req: AIRequest, signal?: AbortSignal): AsyncIterable<AIStreamEvent> {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 2, timeout: 240_000 });
     try {
+      // Sampling parameters, thinking and effort follow the Claude 5.x rules — see request-params.ts.
       const stream = client.messages.stream(
-        {
-          model: req.model,
-          max_tokens: req.maxTokens,
-          system: req.system,
-          messages: req.messages,
-         
-        },
+        anthropicParams(req),
         { signal },
       );
+      let chars = 0;
+      // Thinking blocks (always present on Opus 5.5, often on Haiku 5.5) are skipped: only text reaches the app.
       for await (const event of stream) {
         if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          chars += event.delta.text.length;
           yield { type: "delta", text: event.delta.text };
         }
       }
       const final = await stream.finalMessage();
+      if (!chars && final.stop_reason === "refusal") {
+        yield { type: "error", message: "Claude declined this request. Rephrase it or choose different source text.", retryable: false };
+        return;
+      }
+      if (!chars && final.stop_reason === "max_tokens") {
+        yield { type: "error", message: "The model reached its length limit before writing anything. Try again, choose a shorter piece of text, or raise PLR_AI_MAX_OUTPUT_TOKENS.", retryable: true };
+        return;
+      }
       yield {
         type: "done",
         model: final.model,

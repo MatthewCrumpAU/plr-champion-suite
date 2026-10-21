@@ -16,7 +16,7 @@ export function schemaExtensions(): AnyExtension[] {
   return [
     StarterKit.configure({
       heading: { levels: [1, 2, 3, 4] },
-      link: { openOnClick: false, autolink: true, linkOnPaste: true, HTMLAttributes: { rel: "noopener noreferrer nofollow", target: "_blank" }, protocols: ["http", "https", "mailto"] },
+      link: { openOnClick: false, autolink: true, linkOnPaste: true, HTMLAttributes: { rel: "noopener noreferrer nofollow", target: "_blank" } },
       undoRedo: { depth: 200 },
     }),
     TextAlign.configure({ types: ["heading", "paragraph"] }),

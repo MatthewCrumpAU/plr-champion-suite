@@ -12,8 +12,8 @@ export interface AIRequest {
   system: string;
   messages: AIMessage[];
   model: string;
+  /** Limit for the visible answer. The provider may add headroom for model thinking. */
   maxTokens: number;
-  temperature?: number;
   /** Task id, for logging and the automated-test provider. */
   task?: string;
 }

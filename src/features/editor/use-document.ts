@@ -12,6 +12,7 @@ import { deepClone, errorMessage, nowIso } from "@/lib/utils";
 import { mergeChapterContent, splitChapterContent } from "@/lib/doc/chapters";
 import type { PMDoc } from "@/lib/doc/types";
 import type { SaveState } from "@/components/common/save-status";
+import { clearRecovery, readRecovery, shouldRestore, writeRecovery } from "./recovery";
 
 export type DocMeta = Omit<DocumentData, "chapters" | "original" | "builder" | "exportCount">;
 
@@ -31,6 +32,7 @@ export function useDocument(assetId: string) {
   const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(null);
   const [reloadToken, setReloadToken] = React.useState(0);
   const [editorKey, setEditorKey] = React.useState(0);
+  const [recoveredAt, setRecoveredAt] = React.useState(0);
 
   const ref = React.useRef<{ title: string; status: AssetStatus; chapters: Chapter[]; meta: DocMeta | null; dirty: boolean; pending: boolean; saving: boolean; lastVersionAt: number; lastVersionSig: string; settings: { autosaveDelayMs: number; autoVersionMinutes: number } }>({ title: "", status: "draft", chapters: [], meta: null, dirty: false, pending: false, saving: false, lastVersionAt: 0, lastVersionSig: "", settings: { autosaveDelayMs: 800, autoVersionMinutes: 10 } });
   const assetRef = React.useRef<Asset<"document"> | null>(null);
@@ -65,6 +67,24 @@ export function useDocument(assetId: string) {
       ref.current.dirty = false;
       ref.current.lastVersionSig = dataSignature(a.data.chapters);
       ref.current.lastVersionAt = Date.now();
+      // Edits made just before the tab closed whose save never reached the database.
+      const rec = readRecovery(assetId);
+      if (shouldRestore(rec, a.updatedAt)) {
+        ref.current.title = rec.title;
+        ref.current.status = rec.status;
+        ref.current.chapters = rec.chapters;
+        if (rec.meta) ref.current.meta = rec.meta;
+        setTitleState(rec.title);
+        setStatusState(rec.status);
+        setChaptersState(rec.chapters);
+        if (rec.meta) setMetaState(rec.meta);
+        setActiveId((cur) => (cur && rec.chapters.some((c) => c.id === cur) ? cur : (rec.chapters[0]?.id ?? null)));
+        ref.current.dirty = true;
+        setSaveState("unsaved");
+        setRecoveredAt(Date.now());
+      } else if (rec) {
+        clearRecovery(assetId);
+      }
       setEditorKey((k) => k + 1);
     })();
     return () => {
@@ -102,6 +122,7 @@ export function useDocument(assetId: string) {
       setAsset(updated);
       setLastSavedAt(updated.updatedAt);
       setSaveState(ref.current.dirty || ref.current.pending ? "unsaved" : "saved");
+      if (!ref.current.dirty && !ref.current.pending) clearRecovery(a.id);
       // Automatic version every N minutes of editing.
       const mins = ref.current.settings.autoVersionMinutes;
       const sig = dataSignature(data.chapters);
@@ -136,22 +157,51 @@ export function useDocument(assetId: string) {
     setSaveState((s) => (s === "saving" ? s : "unsaved"));
   }, []);
 
+  /** Synchronous safety copy of unsaved edits (see recovery.ts). Called when the page is hidden or closed. */
+  const keepUnsavedCopy = React.useCallback(() => {
+    const state = ref.current;
+    if (!assetRef.current || !(state.dirty || state.saving)) return;
+    writeRecovery({ assetId, title: state.title, status: state.status, chapters: state.chapters, meta: state.meta });
+  }, [assetId]);
+
+  // A restored copy is saved straight away.
+  React.useEffect(() => {
+    if (!recoveredAt) return;
+    toast.info("Recovered changes you made just before the page closed.");
+    void save();
+  }, [recoveredAt, save]);
+
   // Flush on unmount and warn before closing with unsaved edits.
   React.useEffect(() => {
     const state = ref.current;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       if (state.dirty || state.saving) {
+        keepUnsavedCopy();
         void save();
         e.preventDefault();
         e.returnValue = "";
       }
     };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", onBeforeUnload);
+    // Leaving the tab or app (or closing the page) stores pending edits without waiting for the autosave delay.
+    const onHide = () => {
+      if (document.visibilityState !== "hidden") return;
+      keepUnsavedCopy();
       if (state.dirty) void save();
     };
-  }, [save]);
+    const onPageHide = () => {
+      keepUnsavedCopy();
+      if (state.dirty) void save();
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onPageHide);
+      if (state.dirty) void save();
+    };
+  }, [save, keepUnsavedCopy]);
 
   /* ----------------------------- mutations ----------------------------- */
   const setChapters = React.useCallback(
@@ -314,9 +364,11 @@ export function useDocument(assetId: string) {
       replaceAll(next: Chapter[]) {
         setChapters(() => next);
         setEditorKey((k) => k + 1);
+        // Bulk changes (rebrand rules, AI rewrites, restores) are stored straight away, not after the autosave delay.
+        void save();
       },
     }),
-    [setChapters, updateChapter, chapterLabel, activeId],
+    [setChapters, updateChapter, chapterLabel, activeId, save],
   );
 
   const selectChapter = React.useCallback((id: string) => {
@@ -360,6 +412,7 @@ export function useDocument(assetId: string) {
     notePending,
     ops,
     save,
+    keepUnsavedCopy,
     snapshot,
     reload,
     buildData,

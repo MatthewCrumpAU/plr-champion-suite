@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { confirmDialog, exportVia, fixture, isZip, login, waitSaved } from "./helpers";
+import { confirmDialog, dismissToasts, exportVia, fixture, isZip, login, waitSaved } from "./helpers";
 
 /** Phase 1 acceptance: the core PLR Editor & Profit Studio workflows end to end. */
 test.describe("Phase 1 — core editor workflows", () => {
@@ -21,6 +21,7 @@ test.describe("Phase 1 — core editor workflows", () => {
     await page.getByTestId("rb-generate-rules").click();
     await expect(page.locator("[data-testid=rb-proposals] li").first()).toBeVisible();
     await page.getByTestId("rb-accept-all").click();
+    await dismissToasts(page);
     await page.getByRole("button", { name: /Next: save/ }).click();
     // Step 5: save as a separate document; the original stays untouched.
     await page.getByTestId("rb-save").click();
@@ -73,6 +74,30 @@ test.describe("Phase 1 — core editor workflows", () => {
     await expect(page.getByTestId("chapter-row").filter({ hasText: "Bonus: Weekly Review" })).toHaveCount(1);
     await page.getByTestId("chapter-row").first().click();
     await expect(page.getByTestId("doc-editor")).toContainText("attention");
+  });
+
+  test("Editor: text typed just before the tab closes is not lost", async ({ page, context }) => {
+    await login(page);
+    await page.goto("/editor");
+    await page.locator("a[aria-label^='Open The Calm']").click();
+    await expect(page.getByTestId("doc-editor")).toBeVisible();
+    const url = page.url();
+    for (const word of ["Kestrel-one", "Kestrel-two"]) {
+      await page.getByTestId("doc-editor").click();
+      await page.keyboard.press("Control+End");
+      await page.keyboard.type(` ${word}.`);
+      // Close straight away — before the autosave delay — accepting the "leave site?" prompt.
+      page.on("dialog", (d) => void d.accept());
+      await page.close({ runBeforeUnload: true });
+      page = await context.newPage();
+      await page.goto(url);
+      await expect(page.getByTestId("doc-editor")).toContainText(word, { timeout: 20_000 });
+      await waitSaved(page);
+    }
+    // Once saved, the copy is cleared: a normal reload doesn't "recover" again.
+    await page.reload();
+    await expect(page.getByTestId("doc-editor")).toContainText("Kestrel-two", { timeout: 20_000 });
+    await expect(page.getByText("Recovered changes")).toHaveCount(0);
   });
 
   test("Product Builder: creates an ebook from the PLR chapters and exports it", async ({ page }) => {
