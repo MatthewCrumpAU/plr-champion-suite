@@ -56,6 +56,11 @@ describe("Start clean: remove all sample content", () => {
       expect((await members.courses.list(b)).filter((c) => c.isSample)).toEqual([]);
     }
     expect((await members.products.list("plr-champion")).map((p) => p.id)).toEqual([ownProduct.id]);
+    // Profit Lab: sample campaigns, Build Days, sample members and their plans go too.
+    expect(await members.campaigns.list("plr-profit-lab")).toEqual([]);
+    expect(await members.buildDays.list("plr-profit-lab")).toEqual([]);
+    expect(await members.labProfiles.list("plr-profit-lab")).toEqual([]);
+    expect((await members.accounts.list()).filter((a) => a.isSample)).toEqual([]);
 
     // Nothing is re-created on the next visit…
     expect(await ensureSampleProject(studio)).toBeNull();
