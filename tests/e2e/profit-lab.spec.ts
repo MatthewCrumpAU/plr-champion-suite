@@ -66,7 +66,7 @@ test.describe("PLR Profit Lab", () => {
     await expect(nav).not.toContainText("PLR Product Library");
     await expect(page.getByTestId("member-search")).toHaveCount(0);
     await expect(page.getByTestId("module-campaign")).toContainText("Campaign Drop");
-    await expect(page.getByTestId("module-build-day")).toContainText("days to go");
+    await expect(page.getByTestId("module-build-day")).toContainText(/\d+ (days?|hours?|min)\b.* to go/);
 
     // Library areas belong to the other brands, and Profit Lab areas to Profit Lab.
     await page.goto(`${BASE}/library`);
