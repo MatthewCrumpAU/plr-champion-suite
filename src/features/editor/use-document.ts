@@ -376,6 +376,9 @@ export function useDocument(assetId: string) {
     setEditorKey((k) => k + 1);
   }, []);
 
+  /** Makes a chapter the one the tools work on without re-creating any editor (whole-document view). */
+  const focusChapter = React.useCallback((id: string) => setActiveId(id), []);
+
   /** Snapshot the current state (after flushing pending edits). */
   const snapshot = React.useCallback(
     async (label: string, reason: Parameters<typeof createVersion>[2]) => {
@@ -409,6 +412,7 @@ export function useDocument(assetId: string) {
     setChapterContent,
     updateChapter,
     selectChapter,
+    focusChapter,
     notePending,
     ops,
     save,
