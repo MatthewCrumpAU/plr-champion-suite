@@ -95,6 +95,30 @@ test.describe("Workspace", () => {
     await expect(page.getByTestId("generated-hash")).toContainText(/^pbkdf2\$sha256\$310000\$/, { timeout: 30_000 });
   });
 
+  test("Start clean: one click removes every sample and they don't come back", async ({ page }) => {
+    await login(page);
+    // A project of your own, plus the membership sample library.
+    await page.goto("/m/plr-champion/library");
+    await expect(page.getByTestId("result-count")).toHaveText("12 results", { timeout: 90_000 });
+    await page.goto("/settings");
+    await page.getByTestId("remove-all-samples").click();
+    await confirmDialog(page);
+    await expect(page.getByText("Sample content removed")).toBeVisible({ timeout: 30_000 });
+
+    await page.goto("/projects");
+    await expect(page.getByRole("heading", { name: "Projects" }).first()).toBeVisible();
+    await expect(page.getByText("SAMPLE — Calm Productivity Blueprint")).toHaveCount(0);
+    await page.goto("/m/plr-champion/library");
+    await expect(page.getByTestId("result-count")).toHaveText("0 results", { timeout: 60_000 });
+    await page.goto("/m/plrforim/library");
+    await expect(page.getByTestId("result-count")).toHaveText("0 results", { timeout: 60_000 });
+    // Reloading doesn't bring them back.
+    await page.reload();
+    await expect(page.getByTestId("result-count")).toHaveText("0 results", { timeout: 60_000 });
+    await page.goto("/projects");
+    await expect(page.getByText("SAMPLE — Calm Productivity Blueprint")).toHaveCount(0);
+  });
+
   test("dashboard shows the real workflow for the active project", async ({ page }) => {
     await login(page);
     await page.goto("/");

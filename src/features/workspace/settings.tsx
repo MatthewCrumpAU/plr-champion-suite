@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bot, Copy, Database, HardDrive, KeyRound, LogOut, PlugZap, RefreshCw, Save, ShieldCheck, Trash2, TriangleAlert } from "lucide-react";
+import { Bot, Copy, Database, Eraser, HardDrive, KeyRound, LogOut, PlugZap, RefreshCw, Save, ShieldCheck, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import type { AIUsageRecord } from "@/lib/data/types";
 import { getRepos } from "@/lib/data";
@@ -267,8 +267,9 @@ function StorageSection() {
 
 function DataSection() {
   const confirm = useConfirm();
+  const [cleaning, setCleaning] = React.useState(false);
   return (
-    <Section id="data" icon={<Database />} title="Data" description="Backups, the sample project and erasing this browser's data.">
+    <Section id="data" icon={<Database />} title="Data" description="Backups, sample content and erasing this browser's data.">
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" asChild>
           <Link href="/export#backup">Backup &amp; restore</Link>
@@ -285,6 +286,42 @@ function DataSection() {
           Add the sample project
         </Button>
       </div>
+      <div className="grid gap-2 rounded-xl border p-4">
+        <p className="flex items-center gap-2 text-sm font-semibold">
+          <Eraser className="size-4" /> Start clean: remove all sample content
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Removes the sample project and sample brand kit, and the sample products, drops, courses and resources in every membership. Your own projects, documents, products, settings and AI key are kept, and a project you copied from the sample stays. Samples won&apos;t be added again — you can bring the sample project back with the button above, or a membership&apos;s samples from its Admin → Data page.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="justify-self-start"
+          loading={cleaning}
+          data-testid="remove-all-samples"
+          onClick={async () => {
+            if (!(await confirm({ title: "Remove all sample content?", description: "The sample project, sample brand kit and every membership's sample library are deleted with their files. Your own work is kept.", confirmLabel: "Remove samples", destructive: true }))) return;
+            setCleaning(true);
+            try {
+              const { removeAllSampleContent } = await import("@/lib/services/clean-start");
+              const s = await removeAllSampleContent();
+              setActiveProjectId(null);
+              try {
+                localStorage.removeItem("plrc.activeProjectId");
+              } catch {
+                /* ignore */
+              }
+              toast.success("Sample content removed", { description: `${s.projects} sample project${s.projects === 1 ? "" : "s"}, ${s.brandKits} brand kit${s.brandKits === 1 ? "" : "s"} and ${s.membershipItems} membership item${s.membershipItems === 1 ? "" : "s"}.` });
+            } catch (e) {
+              toast.error(errorMessage(e));
+            } finally {
+              setCleaning(false);
+            }
+          }}
+        >
+          <Eraser /> Remove all sample content
+        </Button>
+      </div>
       <div className="grid gap-2 rounded-xl border border-red-200 bg-red-50/50 p-4">
         <p className="flex items-center gap-2 text-sm font-semibold text-red-800">
           <TriangleAlert className="size-4" /> Erase all data in this browser
@@ -297,10 +334,15 @@ function DataSection() {
           onClick={async () => {
             if (!(await confirm({ title: "Erase everything?", description: "All PLR Champion data in this browser will be permanently deleted.", confirmLabel: "Erase everything", destructive: true, typeToConfirm: "ERASE" }))) return;
             await getRepos().clearAll();
-            // Membership libraries live in their own database; erase them too (they re-seed samples on next visit).
+            // Membership libraries live in their own database; erase them too.
             try {
               const { getMembershipRepos } = await import("@/lib/membership/db");
-              await getMembershipRepos().clearAll();
+              const { markSamplesRemoved } = await import("@/lib/membership/seed");
+              const { BRAND_IDS } = await import("@/lib/membership/types");
+              const r = getMembershipRepos();
+              await r.clearAll();
+              // An erased browser stays empty: don't re-create the membership sample libraries either.
+              for (const b of BRAND_IDS) await markSamplesRemoved(b, r);
             } catch {
               /* membership area never opened in this browser */
             }

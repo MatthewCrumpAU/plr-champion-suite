@@ -68,6 +68,7 @@ Use a long, unique password. This password is the only thing protecting your wor
 | `PLR_SESSION_DAYS` | Login length in days (max 30) | `7` |
 | `PLR_SESSION_VERSION` | Change the value (e.g. `1` → `2`) and redeploy to sign out every device | `1` |
 | `PLR_COOKIE_SECURE` | Leave unset. Cookies are automatically Secure on HTTPS | auto |
+| `NEXT_PUBLIC_PLR_SAMPLE_CONTENT` | `off` starts every new browser completely empty — no sample project and no sample membership libraries — the way a customer's copy should start. Redeploy after changing it | on |
 
 Never set `PLR_AI_TEST_PROVIDER` on your deployment. It exists for the automated tests (it makes AI return placeholder text marked `[TEST OUTPUT]`) and is ignored on Vercel production deployments anyway.
 
@@ -96,6 +97,8 @@ How it works: AI requests go from your browser to your Vercel server, which call
 - **Your data lives in your browser.** Projects, documents, designs and uploads are stored in the browser's private database (IndexedDB) on the device and browser you use. Another browser or device starts empty. To move work between devices, use **Export Centre → Download full backup** on one, and **Export Centre → Choose backup file** (under *Restore from a backup*) on the other.
 - **Back up regularly.** Browser storage can be cleared by "Clear browsing data", by private/incognito windows, or by the browser under storage pressure. Use **Export Centre → Download full backup** (a single `.json` file containing everything, including images) and keep copies somewhere safe. **Settings → Storage → Ask the browser to keep my data** reduces the chance of automatic clearing.
 - **Version history and snapshots** protect against mistakes inside the app, but not against the browser deleting its storage. Only backups do that.
+- **Saving is automatic.** Every change is saved in this browser a moment after you make it (the status next to each editor shows *Saved*). If you close or reload the tab straight after typing, the PLR Editor keeps a safety copy and restores it the next time you open the document.
+- **Start clean.** **Settings → Data → Remove all sample content** deletes the sample project and every membership's sample library in one step and keeps them from coming back. Your own projects, products and settings are kept. To give a new deployment no samples at all, set `NEXT_PUBLIC_PLR_SAMPLE_CONTENT=off` before its first use.
 
 ## 7. Updating the app later
 
