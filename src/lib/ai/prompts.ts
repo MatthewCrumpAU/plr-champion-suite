@@ -5,7 +5,6 @@ export interface BuiltPrompt {
   system: string;
   user: string;
   maxTokens: number;
-  temperature?: number;
 }
 
 const BASE_RULES = `You are the writing engine inside PLR Champion, a private studio used by a digital product creator to edit, rebrand and repurpose private label rights (PLR) content they hold rights to.
@@ -116,7 +115,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${MARKDOWN_RULES}`,
         user: `${spec}\n\nTopic: ${i.topic}\nAudience: ${i.audience || "general readers interested in the topic"}\nTone: ${i.tone || "clear, friendly and practical"}\nLength: ${len}.${i.keyPoints ? `\nKey points to cover:\n${i.keyPoints}` : ""}${i.extra ? `\nAdditional instructions: ${i.extra}` : ""}${briefBlock(i.brief)}${source("Source material to draw from (rewrite in your own words; do not copy sentences verbatim)", i.sourceText)}`,
         maxTokens: cap(i.length === "long" ? 6000 : 3500),
-        temperature: 0.7,
       };
     }
     case "writer.transform": {
@@ -125,7 +123,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${MARKDOWN_RULES}\nPreserve headings, lists and tables from the original where they still make sense.`,
         user: `${TRANSFORM_SPECS[i.tool](i)}${i.extra ? `\nAdditional instructions: ${i.extra}` : ""}${briefBlock(i.brief)}${source("Text", i.text)}`,
         maxTokens: cap(i.tool === "expand" ? 7000 : 5000),
-        temperature: 0.6,
       };
     }
     case "rebrand.rewrite": {
@@ -140,7 +137,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${MARKDOWN_RULES}\nThe first line of your answer must be the new chapter title as a level-1 heading ("# Title"). Then the chapter body.`,
         user: `Rebrand this chapter for the new product described in the brief. ${level}\nReplace any mention of the original product name, author or brand with the new ones. Remove outdated or generic filler phrases ("In today's fast-paced world", "It goes without saying", etc.).${i.extra ? `\nAdditional instructions: ${i.extra}` : ""}${briefBlock(i.brief)}\n\nOriginal chapter title: ${i.chapterTitle || "(untitled)"}${source("Original chapter text", i.text)}`,
         maxTokens: cap(7000),
-        temperature: 0.6,
       };
     }
     case "outline.create": {
@@ -150,7 +146,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}`,
         user: `Create an outline for a ${i.type.replace(/-/g, " ")} on: ${i.topic}.\nAudience: ${i.audience || "beginners"}\nPromise / outcome: ${i.promise || "a clear, practical result"}\nNumber of ${unit}: ${i.units}\nSections per ${unit.replace(/s$/, "")}: ${i.sectionsPerUnit}${i.notes ? `\nNotes: ${i.notes}` : ""}${briefBlock(i.brief)}\n\nReturn JSON with this shape:\n{"title": string, "subtitle": string, "items": [{"title": string, "summary": string (one sentence), "sections": string[]}]}`,
         maxTokens: cap(4000),
-        temperature: 0.7,
       };
     }
     case "product.build": {
@@ -159,7 +154,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${MARKDOWN_RULES}\nStart with "# <title>" and then use exactly one "## " heading per part.`,
         user: `Using the source material, create ${BUILD_SPECS[i.format]}\nTitle: ${i.title}\nAudience: ${i.audience || "the product's audience"}\nNumber of parts: ${i.units}${i.extra ? `\nAdditional instructions: ${i.extra}` : ""}${briefBlock(i.brief)}${source("Source material (repurpose it in fresh words; keep useful advice; do not copy long passages verbatim)", i.sourceText)}`,
         maxTokens: cap(8000),
-        temperature: 0.6,
       };
     }
     case "opportunity.scan": {
@@ -168,7 +162,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}\nPrices are rough planning estimates, not market research — keep ranges conservative.`,
         user: `Analyse this PLR product and suggest 5–8 distinct ways to repurpose it into new digital products.\nTitle: ${i.title}\nNiche: ${i.niche}\nAudience: ${i.audience}${briefBlock(i.brief)}\n\nChapters:\n${i.chapters.map((c, n) => `${n + 1}. ${c.title} — ${c.summary}`).join("\n")}\n\nReturn a JSON array. Each item: {"format": one of ["ebook","short-guide","workbook","checklist","mini-course","email-course","challenge","membership-module","toolkit","action-plan","cheat-sheet","quick-start-guide","short-report"], "name": string, "sourceChapters": string[] (chapter titles used), "complexity": "low"|"medium"|"high", "positioning": string, "funnelRole": "lead-magnet"|"front-end"|"order-bump"|"upsell"|"downsell"|"bonus"|"membership", "priceLow": number, "priceHigh": number, "rationale": string}`,
         maxTokens: cap(4000),
-        temperature: 0.7,
       };
     }
     case "research.niche": {
@@ -184,7 +177,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}\nEverything you produce is a hypothesis for the user to validate. Do not state numbers, market sizes, search volumes or trends as facts.`,
         user: `Niche: ${i.niche}\nAudience: ${i.audience || "unspecified"}${i.notes ? `\nResearch notes so far: ${i.notes}` : ""}${i.existing.length ? `\nAlready listed (do not repeat): ${i.existing.join("; ")}` : ""}\n\nGenerate ${i.count} ${i.kind === "personas" ? "customer personas (fictional, for planning)" : i.kind} for this niche.\nReturn JSON: ${shapes[i.kind]}`,
         maxTokens: cap(3000),
-        temperature: 0.8,
       };
     }
     case "research.keywords": {
@@ -193,7 +185,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}\nYou do not have search data. Never include search volume, difficulty, competition or CPC numbers.`,
         user: `Suggest ${i.count} keyword ideas for seed "${i.seed}".\nNiche: ${i.niche || "unspecified"}\nAudience: ${i.audience || "unspecified"}\nInclude these kinds: ${i.kinds.join(", ")}.${i.existing.length ? `\nAlready listed (do not repeat): ${i.existing.slice(0, 200).join("; ")}` : ""}\n\nReturn JSON array: [{"keyword": string, "type": "long-tail"|"question"|"product"|"topic", "intent": "informational"|"commercial"|"transactional"|"navigational", "cluster": string (a short topic group name)}]`,
         maxTokens: cap(3000),
-        temperature: 0.7,
       };
     }
     case "marketing.sales": {
@@ -216,7 +207,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}`,
         user: `Write the ${i.section} section of a sales page. ${guide[i.section]}${briefBlock(i.brief)}${i.included.length ? `\nIncluded components: ${i.included.join("; ")}` : ""}${i.bonuses.length ? `\nBonuses: ${i.bonuses.join("; ")}` : ""}${i.current ? `\nCurrent draft (improve on it): ${i.current}` : ""}${i.extra ? `\nAdditional instructions: ${i.extra}` : ""}\n\nReturn JSON: {"heading": string, "subheading": string, "body": string, "bullets": string[], "items": [{"title": string, "text": string}]}`,
         maxTokens: cap(2500),
-        temperature: 0.7,
       };
     }
     case "marketing.emails": {
@@ -225,7 +215,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}\nNo fake urgency (no invented deadlines or scarcity). Use [placeholders] for anything the sender must fill in, such as dates, links or prices not given.`,
         user: `Write a ${i.count}-email ${i.sequence.replace(/-/g, " ")} sequence.${briefBlock(i.brief)}${i.ctaUrl ? `\nCall-to-action link: ${i.ctaUrl}` : ""}${i.extra ? `\nAdditional instructions: ${i.extra}` : ""}\n\nReturn a JSON array in send order: [{"day": number (days after the sequence starts), "subject": string, "altSubjects": string[] (2 alternatives), "preview": string (preview text, under 90 characters), "body": string (plain text with blank lines between paragraphs), "ctaText": string}]`,
         maxTokens: cap(7000),
-        temperature: 0.7,
       };
     }
     case "marketing.social": {
@@ -234,7 +223,6 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}`,
         user: `Create ${i.count} social media pieces (${i.kind}) for these platforms: ${i.platforms.join(", ")}. Spread them across the platforms. Match each platform's style: Facebook conversational, Instagram caption with line breaks and up to 8 relevant hashtags, LinkedIn professional and insight-led, video-script as a 30–60 second script with [HOOK], [BODY], [CTA] markers.${briefBlock(i.brief)}${source("Source content to repurpose", i.sourceText)}${i.extra ? `\nAdditional instructions: ${i.extra}` : ""}\n\nReturn JSON array: [{"platform": one of ${JSON.stringify(i.platforms)}, "type": "educational"|"promotional"|"announcement"|"engagement", "text": string, "hashtags": string[]}]`,
         maxTokens: cap(5000),
-        temperature: 0.8,
       };
     }
     case "marketing.names": {
@@ -243,11 +231,10 @@ export function buildPrompt<T extends AITaskId>(task: T, raw: AITaskParsed<T>, m
         system: `${BASE_RULES}\n\n${JSON_RULES}\nAvoid names that copy well-known trademarks or bestselling titles.`,
         user: `Generate ${i.count} ${i.category.replace(/-/g, " ")} ideas.\nTopic: ${i.topic}\nAudience: ${i.audience || "unspecified"}\nOutcome / promise: ${i.outcome || "unspecified"}\nFormat: ${i.format || "digital product"}\nStyle: ${i.style || "clear and benefit-led"}${i.avoid.length ? `\nAvoid repeating: ${i.avoid.slice(0, 100).join("; ")}` : ""}\n\nReturn JSON array: [{"name": string, "note": string (why it works, one short sentence)}]`,
         maxTokens: cap(2000),
-        temperature: 0.9,
       };
     }
     case "test.ping":
-      return { system: "Reply with the single word OK.", user: "Connection test.", maxTokens: 16, temperature: 0 };
+      return { system: "Reply with the single word OK.", user: "Connection test.", maxTokens: 32 };
     default:
       throw new Error(`Unknown task: ${String(task)}`);
   }
