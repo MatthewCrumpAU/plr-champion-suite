@@ -1,7 +1,31 @@
 import { test, expect } from "@playwright/test";
 import { exportVia, fixture, isPdf, isZip, login } from "./helpers";
 
+/** Removes browser features Safari (iPhone, iPad and Mac) doesn't have, so Chromium behaves like it. */
+async function emulateSafariStreams(page: import("@playwright/test").Page) {
+  await page.addInitScript(() => {
+    const proto = ReadableStream.prototype as unknown as Record<PropertyKey, unknown>;
+    delete proto[Symbol.asyncIterator];
+    delete proto.values;
+  });
+}
+
 test.describe("Content Studio", () => {
+  for (const safari of [false, true]) {
+    test(`imports a text-based PDF into chapters${safari ? " in a Safari-like browser" : ""}`, async ({ page }) => {
+      if (safari) await emulateSafariStreams(page);
+      await login(page);
+      await page.goto("/editor");
+      await page.getByTestId("open-import").click();
+      await page.setInputFiles("[data-testid=import-drop] input[type=file]", fixture("focus-freedom.pdf"));
+      await expect(page.getByText("This file could not be imported")).toHaveCount(0);
+      await expect(page.locator("[data-testid=import-chapters] li")).toHaveCount(3, { timeout: 30_000 });
+      await expect(page.getByTestId("import-chapters")).toContainText("Plan Your Day");
+      await page.getByTestId("confirm-import").click();
+      await expect(page.getByTestId("doc-editor")).toContainText("protect two hours each morning", { timeout: 20_000 });
+    });
+  }
+
   test("imports a DOCX, edits with autosave and exports DOCX, PDF and Markdown", async ({ page }) => {
     await login(page);
     await page.goto("/editor");
