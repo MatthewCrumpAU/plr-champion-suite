@@ -8,6 +8,7 @@ import { docWords } from "@/lib/doc/text";
 import { createAsset } from "./assets";
 import { createProject, purgeProject, updateProject } from "./projects";
 import { sampleExtras } from "./sample-extras";
+import { sampleContentEnabled } from "@/lib/sample-mode";
 
 /**
  * Sample project created on first run so every tool can be explored without uploading a file.
@@ -190,6 +191,11 @@ export async function seedSampleProject(repos: Repositories = getRepos()) {
 export async function ensureSampleProject(repos: Repositories = getRepos()) {
   const run = async () => {
     if (await repos.meta.get(SAMPLE_FLAG)) return null;
+    // Turned off for this deployment: start empty and never add the sample automatically.
+    if (!sampleContentEnabled()) {
+      await repos.meta.set(SAMPLE_FLAG, true);
+      return null;
+    }
     const existing = await repos.projects.list({ includeArchived: true, includeDeleted: true });
     if (existing.some((p) => !p.isSample)) {
       await repos.meta.set(SAMPLE_FLAG, true);

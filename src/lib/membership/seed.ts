@@ -12,6 +12,7 @@ import type { SampleChapter, SampleFileSpec, SampleProductDef } from "./sample-c
 import { sampleLibraryFor } from "./sample-libraries";
 import { LAB_SAMPLE_STEPS, removeLabSamples, seedLabSamples } from "@/lib/lab/seed";
 import { PRODUCT_FORMAT_LABELS, type BrandId, type Course, type Lesson, type Product, type ProductAttachment, type ProductFileKind } from "./types";
+import { sampleContentEnabled } from "@/lib/sample-mode";
 
 /**
  * Seeds a brand's sample library (categories, products with real DOCX/PDF files, monthly drops,
@@ -338,6 +339,8 @@ export async function isSeeded(brandId: BrandId, repos?: MembershipRepositories)
 export async function ensureSampleLibrary(brandId: BrandId, opts: SeedOptions = {}): Promise<SeedSummary | null> {
   const r = opts.repos ?? getMembershipRepos();
   if (await isSeeded(brandId, r)) return null;
+  // Turned off for this deployment (NEXT_PUBLIC_PLR_SAMPLE_CONTENT=off): start with an empty library.
+  if (!sampleContentEnabled()) return null;
   if (!sampleLibraryFor(brandId)) {
     await r.kv.set(SEED_KEY(brandId), { version: SEED_VERSION, at: nowIso(), empty: true });
     return null;
@@ -347,3 +350,11 @@ export async function ensureSampleLibrary(brandId: BrandId, opts: SeedOptions = 
   return seedSampleLibrary(brandId, { ...opts, repos: r });
 }
 
+
+/**
+ * Records that this brand's samples were removed (or the brand was erased) so the sample library is
+ * not created again on the next visit. *Recreate sample library* in Admin → Data still works.
+ */
+export async function markSamplesRemoved(brandId: BrandId, repos?: MembershipRepositories) {
+  await (repos ?? getMembershipRepos()).kv.set(SEED_KEY(brandId), { version: SEED_VERSION, at: nowIso(), removed: true });
+}
