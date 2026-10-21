@@ -144,6 +144,19 @@
   font-size: 16px;
   line-height: 1.75;
 }
+/* In the whole-document view chapters follow each other, so no tall empty area per chapter. */
+.plr-doc.plr-doc-flow {
+  min-height: 2.5em;
+}
+/* One chapter at a time: room to click and type, but on phones the previous/next links stay close. */
+.plr-doc.plr-doc-page {
+  min-height: 30vh;
+}
+@media (min-width: 640px) {
+  .plr-doc.plr-doc-page {
+    min-height: 60vh;
+  }
+}
 .plr-doc > * + * {
   margin-top: 0.85em;
 }
