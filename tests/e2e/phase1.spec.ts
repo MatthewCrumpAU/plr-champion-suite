@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { confirmDialog, exportVia, fixture, isZip, login, waitSaved } from "./helpers";
+import { confirmDialog, dismissToasts, exportVia, fixture, isZip, login, waitSaved } from "./helpers";
 
 /** Phase 1 acceptance: the core PLR Editor & Profit Studio workflows end to end. */
 test.describe("Phase 1 — core editor workflows", () => {
@@ -21,6 +21,7 @@ test.describe("Phase 1 — core editor workflows", () => {
     await page.getByTestId("rb-generate-rules").click();
     await expect(page.locator("[data-testid=rb-proposals] li").first()).toBeVisible();
     await page.getByTestId("rb-accept-all").click();
+    await dismissToasts(page);
     await page.getByRole("button", { name: /Next: save/ }).click();
     // Step 5: save as a separate document; the original stays untouched.
     await page.getByTestId("rb-save").click();

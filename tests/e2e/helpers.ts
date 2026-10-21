@@ -56,3 +56,9 @@ export const isZip = (b: Buffer) => b[0] === 0x50 && b[1] === 0x4b;
 export async function waitSaved(page: Page) {
   await expect(page.getByTestId("save-status").first()).toHaveAttribute("data-state", "saved", { timeout: 15_000 });
 }
+
+/** Closes any toasts. A toast over a button pauses while the pointer hovers it, so it never clears and blocks the click. */
+export async function dismissToasts(page: Page) {
+  const close = page.getByRole("button", { name: "Close toast" });
+  while ((await close.count()) > 0) await close.first().click({ timeout: 5_000 }).catch(() => undefined);
+}
