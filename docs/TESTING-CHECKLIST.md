@@ -37,7 +37,8 @@ All of these run on GitHub after every push (**Actions → Checks**). Last full 
 - **Membership** — dashboard; library search; product page single-file and ZIP downloads with licence summary; My Downloads and download again; Advanced Search licence/category filters surviving a reload; Download Manager multi-product ZIP (valid PDF and DOCX inside); Edit in PLR Editor (and blocked for an MRR licence); View as free member (drafts hidden, member items locked, admin hidden); admin creates a category and a product with cover, file and licence then publishes it; admin schedules a monthly release; lesson completion and checklist ticks persist; membership backup and restore; phone-width layout of 15 member and admin pages; studio link and unknown-brand 404.
 
 - **Private access** — redirect to login, wrong password rejected, sign in, session kept across reloads, sign out; API rejects unauthenticated and cross-site requests.
-- **Content Studio** — DOCX import with 3 detected chapters → edit → autosave → reload persists → compare with original → DOCX, PDF and Markdown exports are valid files containing the edit; AI Writer (templates + AI provider + usage display); Outline Generator → document; sample document opens.
+- **Editor views** — on a phone-sized screen a PDF that splits into 3 chapters shows all of them; next/previous and the chapter list jump between them and the bar follows scrolling; typing in chapter 3 makes it the active chapter and is saved; one-chapter view with previous/next at the end of each chapter, remembered after a reload; on a computer the toolbar formats the chapter being edited, the side list scrolls to a chapter, and a chapter added at the end can be named.
+- **Content Studio** — DOCX and text-based PDF import (also in a Safari-like browser) with 3 detected chapters → edit → autosave → reload persists → compare with original → DOCX, PDF and Markdown exports are valid files containing the edit; AI Writer (templates + AI provider + usage display); Outline Generator → document; sample document opens.
 - **Design Studio** — cover from template, edit, undo, PNG and PDF export; mockups from the sample cover with real PNG export; brand kit created and linked to a project.
 - **Product Studio** — workbook built from source chapters, saved and exported; Bonus Builder AI draft split into parts; Opportunity Scanner labels estimates and hands off to a builder; Lead Magnet matching cover.
 - **Research Studio** — Keyword Finder patterns, CSV metrics with source, clustering, CSV export; Rights Review licence import, clause finder, MRR warning, reviewed state; Niche Research keeps AI suggestions labelled as hypotheses.
@@ -68,6 +69,7 @@ Tick each item on your live site. Use a fresh project (not the sample) for the e
 
 ### Content Studio
 - [ ] Import one of your real PLR files (DOCX and PDF). Chapters are detected sensibly; adjust if needed.
+- [ ] On your phone, after the import the whole document shows, chapter after chapter. The bar above it jumps to any chapter (tap the chapter name), goes to the previous / next one, and switches between **All** (whole document) and **One** (one chapter at a time, with Previous / Next at the end of each chapter). Type in a later chapter, reload — the edit is kept and the view you chose is remembered.
 - [ ] Edit text, wait for "Saved", reload — edit kept. Compare view shows the original.
 - [ ] Add find & replace rules (e.g. old author name → yours), preview, apply; check Version history has a pre-change version.
 - [ ] Export DOCX and PDF; open both in Word / a PDF reader.
