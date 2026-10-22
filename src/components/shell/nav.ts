@@ -28,6 +28,7 @@ import {
   Crown,
   ChartNoAxesCombined,
   LayoutGrid,
+  FlaskConical,
   type LucideIcon,
 } from "lucide-react";
 
@@ -110,6 +111,7 @@ export const NAV: NavSection[] = [
     items: [
       { label: "PLR Champion Members", href: "/m/plr-champion", icon: Crown, description: "Member library, downloads, training and tools" },
       { label: "PLRforIM Members", href: "/m/plrforim", icon: ChartNoAxesCombined, description: "Internet-marketing PLR library, swipes and training" },
+      { label: "PLR Profit Lab", href: "/m/plr-profit-lab", icon: FlaskConical, description: "90-Day Profit Path, Campaign Drops and Build Days" },
       { label: "Membership Admin", href: "/m/plr-champion/admin", icon: LayoutGrid, description: "Products, categories, releases and access for each brand" },
     ],
   },

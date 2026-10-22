@@ -8,9 +8,9 @@ All of these run on GitHub after every push (**Actions → Checks**). Last full 
 | --- | --- |
 | Type check | TypeScript strict mode across the whole app |
 | Lint | ESLint (Next.js + TypeScript rules), zero warnings |
-| Unit tests | 121 tests in 11 files (Vitest) |
-| Production build | `next build` of all 26 studio pages (22 tools, dashboard, workspace pages), 28 membership pages (shared by both brands), the login page and the API routes |
-| Browser tests | 49 end-to-end tests in a real Chromium browser (Playwright) against the production build |
+| Unit tests | 156 tests in 13 files (Vitest) |
+| Production build | `next build` of all 27 studio pages (22 tools, dashboard, workspace pages), 39 membership pages (shared by the three brands), the login page and the API routes |
+| Browser tests | 57 end-to-end tests in a real Chromium browser (Playwright) against the production build |
 
 ### Unit tests (`tests/unit`)
 
@@ -24,9 +24,13 @@ All of these run on GitHub after every push (**Actions → Checks**). Last full 
 - **auth** — PBKDF2 hashing and verification, hash preferred over plain password, signed sessions reject tampering/other secrets/old versions, login lockout and reset, config problems reported without exposing values, `__Host-` cookies.
 - **workflow** — the 12-step project workflow counts only real, non-trashed work.
 - **brands** — both brands switched on with their own theme; separate sample libraries with valid categories and drops; no income claims in sample text; seeding, removal and backup restore never touch the other brand; entitlements from own membership, bundles and linked accounts (both directions, one hop); test profile validation, linking, preview and clean-up.
+- **lab-path** — Profit Path dates and `.ics` writer, answer normalisation, stage segments for every launch pattern, 13-week generation on working days only, stable task keys, launch-day anchoring, fitting extras to the hours available, personalisation by experience/model/assets, multiple launches, custom and skipped tasks, goal maths, progress status/streaks/milestones, Markdown/CSV/.ics exports, profile and progress storage.
+- **lab-content** — campaign templates with all ten parts, validation, launch-relative dates, calendar rebuild keeping manual entries, regenerating a section, building a campaign from a studio project (DOCX product file, rebrand rules, emails, lead magnet, bonuses, launch plan), starting a studio project from a campaign, campaign kit ZIP, duplicate and delete with file copies/clean-up, BYLDITY handoffs never connect; Build Day scheduling, phases and countdown, default date, validation and link cleaning, progress, planning next month and the pack/run sheet/`.ics`; Profit Lab samples seed and remove (including sample members and plans), backup v2 round-trip and brand isolation, and the Complete PLR Business bundle.
 - **membership** — access rules (tiers, drafts, scheduled items, owner preview), library search ranking/filters/URL round-trip, unique slugs, category clean-up, releases kept in step with products, scheduled vs published releases, attachments and duplicate/delete file clean-up, safe links, sample library seeded once and removable without touching your own products, favourites and lesson progress, licence summaries, membership backup round-trip and brand isolation, cover text escaping, course progress, embedded tool link remapping.
 
 ### Browser tests (`tests/e2e`)
+
+- **PLR Profit Lab** — own branded dashboard, theme and navigation, library areas refused and Profit Lab areas refused on PLR Champion, brand switcher falls back to the dashboard, studio link; Profit Path questionnaire → plan → tick (persists after reload), custom task, skip and re-plan, weekly reflection persists, 13 weeks and two launch checklists, changing hours re-plans and keeps ticks, Markdown/CSV/.ics exports; owner opens a sample member's plan with View as and ticks are saved for that member; Campaign Drop Creator builds a campaign from the sample PLR Editor project (DOCX product file), edits, keeps a manual calendar entry on rebuild, BYLDITY send reports "not connected", releases it, member preview shows all ten parts, checklist progress and a valid kit ZIP, and free members see a locked preview; *Start it in the studio* opens the PLR Editor with the new project; Build Day planner adds a session, uploads a material, sets the meeting link and announces it, run sheet download, member RSVP, checklist, own action and journal persist after reload, member pack and `.ics`, RSVP count and "Plan next month"; backup v2 contains campaigns and Build Days and restores after removing samples; phone-width layout of 11 Profit Lab pages.
 
 - **PLRforIM** — own branded dashboard, theme and library (no PLR Champion products), ZIP licence summary names PLRforIM, IM drops; brand switcher keeps the section in both directions; test profiles: an IM-only buyer is refused PLR Champion and sees member-level IM content, linking a PLR Champion account shares access both ways, a bundle buyer gets premium on both; a PLRforIM backup is refused by PLR Champion.
 
@@ -126,3 +130,14 @@ Tick each item on your live site. Use a fresh project (not the sample) for the e
 - [ ] Admin → **Members & access** → create an “IM only” test profile (PLRforIM: Member). **View as** it, then open PLR Champion — you get the “No PLR Champion membership” page.
 - [ ] Create a “Champion buyer” (PLR Champion: Premium) linked to the IM profile; view as the IM profile again — PLR Champion opens.
 - [ ] Create a bundle profile — both brands show Premium “via Bundle”.
+
+### PLR Profit Lab (`/m/plr-profit-lab`)
+- [ ] Open **Memberships → PLR Profit Lab**: green/gold branding; the sidebar shows 90-Day Profit Path, Campaign Drops and Build Days, and no product library.
+- [ ] **90-Day Profit Path:** answer the five questions (try a start date of today and tick every day you work). Tick a task, reload — still ticked. Add your own task, skip one that doesn't apply, write a weekly reflection. Change your hours in *Your answers* → the plan changes and your ticks stay. Export the `.ics` and import it into your calendar.
+- [ ] **Admin → Profit Path profiles → Open plan** for Jordan: the banner shows you're previewing Jordan; tick a task; exit the preview — your own plan is unaffected.
+- [ ] **Admin → Campaign Drop Creator → Create from project** with one of your own projects. Check every section (ready marks), add a calendar entry, release it, then open **Member preview**: download the campaign kit and open the DOCX inside.
+- [ ] On a campaign, **Start it in the studio** — the product opens in the PLR Editor and the project has a sales page, emails, posts and a launch plan.
+- [ ] **View as → Free member** on a member-level campaign: what's included is visible, the contents and downloads aren't.
+- [ ] **Admin → Build Day Planner → Plan a Build Day**: add a session, upload a workbook, paste your meeting link, **Announce now**. As a member: RSVP, add to calendar, tick a checklist item, add your own action, write in the journal, reload — all kept. Back in the planner the RSVP shows in Attendees; **Plan next month** copies it.
+- [ ] **BYLDITY handoff** panel: download a payload JSON; **Send** says the app isn't connected.
+- [ ] **Admin → Data:** download the Profit Lab backup, remove the samples, restore with **Merge** — the campaigns and Build Days come back.

@@ -24,10 +24,14 @@ beforeEach(async () => {
 const acct = (id: string, patch: Partial<MemberAccount> = {}): MemberAccount => ({ id, email: `${id}@x.test`, displayName: id, role: "member", brandAccess: {}, linkedAccountIds: [], source: "test", createdAt: "", updatedAt: "", ...patch });
 
 describe("brands", () => {
-  it("switches on both brands with their own look", () => {
-    expect(LIVE_BRAND_IDS).toEqual(["plr-champion", "plrforim"]);
+  it("switches on all three brands with their own look", () => {
+    expect(LIVE_BRAND_IDS).toEqual(["plr-champion", "plrforim", "plr-profit-lab"]);
     expect(isLiveBrand("plrforim")).toBe(true);
+    expect(isLiveBrand("plr-profit-lab")).toBe(true);
     expect(isLiveBrand("profit-lab")).toBe(false);
+    expect(brandCssVars(BRANDS["plr-profit-lab"].theme)["--primary"]).toBe("#15803d");
+    expect(BRANDS["plr-profit-lab"].features).toMatchObject({ library: false, drops: false, lab: true, training: true });
+    expect(BRANDS["plr-champion"].features).toMatchObject({ library: true, lab: false });
     expect(brandCssVars(BRANDS.plrforim.theme)["--primary"]).toBe("#0f8a7a");
     expect(brandCssVars(BRANDS["plr-champion"].theme)["--primary"]).toBe("#5b4df5");
     expect(BRANDS.plrforim.dropName).not.toBe(BRANDS["plr-champion"].dropName);
@@ -50,8 +54,9 @@ describe("brands", () => {
     }
   });
 
-  it("no sample content makes income claims", () => {
-    const text = JSON.stringify([sampleLibraryFor("plr-champion"), sampleLibraryFor("plrforim")]).toLowerCase();
+  it("no sample content makes income claims", async () => {
+    const lab = await import("@/lib/lab/sample-content");
+    const text = JSON.stringify([sampleLibraryFor("plr-champion"), sampleLibraryFor("plrforim"), sampleLibraryFor("plr-profit-lab"), lab.SAMPLE_CAMPAIGNS, lab.SAMPLE_BUILD_DAYS, lab.SAMPLE_MEMBERS]).toLowerCase();
     for (const banned of ["guaranteed income", "make $", "earn $", "per month in", "six figures", "6 figures", "passive income guaranteed"]) expect(text).not.toContain(banned);
   });
 

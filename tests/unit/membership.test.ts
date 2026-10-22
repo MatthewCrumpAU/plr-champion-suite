@@ -218,7 +218,7 @@ describe("member actions", () => {
     const b = await ensureOwnerAccount();
     expect(a.id).toBe(OWNER_ACCOUNT_ID);
     expect(b.createdAt).toBe(a.createdAt);
-    expect(a.brandAccess).toEqual({ "plr-champion": "premium", plrforim: "premium" });
+    expect(a.brandAccess).toEqual({ "plr-champion": "premium", plrforim: "premium", "plr-profit-lab": "premium" });
   });
 });
 

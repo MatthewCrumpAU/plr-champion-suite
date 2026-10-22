@@ -147,3 +147,65 @@ create table favourites (id text primary key, brand_id text not null, member_id 
 Policy outline (mirrors `access.ts`): members can select catalogue rows for a brand only when `status` is live (`published`/`scheduled` and `publish_at <= now()`), and can download files only when their `brand_access` tier for that brand is at least the item's `access`. The owner role bypasses both. Downloads, progress and favourites are readable and writable only by their `member_id`. File downloads should go through short-lived signed URLs issued after the same check.
 
 Moving the data uses the membership backup ZIP (`membership.json` + `files/`) exactly as the studio migration uses the workspace backup.
+
+---
+
+## 5. Profit Lab tables
+
+PLR Profit Lab (Phase 4) adds four tables to the same membership database (Dexie schema **version 2**; backup format version 2, which still reads version-1 backups). Each interface in `src/lib/lab/types.ts` maps to one table; nested arrays (tasks, sections, agenda, files) become `jsonb` so the editors can evolve without schema changes.
+
+```sql
+-- One row per member: the 90-Day Profit Path answers. The plan itself is generated from them in code.
+create table lab_profiles (
+  id text primary key,                    -- 'path:' || member_id
+  brand_id text not null,
+  member_id text not null references member_accounts(id) on delete cascade,
+  experience text not null,               -- new | some | experienced
+  hours_per_week int not null, work_days int[] not null, start_date date not null,
+  niche text, product_idea text, plr_products int, own_products int,
+  has_email_list boolean, list_size int, has_website boolean, has_checkout boolean, has_social_audience boolean,
+  business_model text not null, launches int not null, first_launch_week int not null,
+  revenue_goal numeric, price_point numeric, conversion_pct numeric, list_goal int, currency text,
+  project_id text,                        -- optional studio project
+  custom_tasks jsonb not null default '[]', skipped_task_keys text[] not null default '{}',
+  is_sample boolean, created_at timestamptz, updated_at timestamptz
+);
+
+-- One row per member per plan / campaign / Build Day: ticks, notes and Build Day extras.
+create table lab_progress (
+  id text primary key,                    -- member_id || ':' || kind || ':' || ref_id
+  brand_id text not null,
+  member_id text not null references member_accounts(id) on delete cascade,
+  kind text not null,                     -- path | campaign | build-day
+  ref_id text not null,
+  done jsonb not null default '{}',       -- item key -> completed at
+  notes jsonb not null default '{}',      -- item key -> note (weekly reflections)
+  rsvp text, attended boolean, own_actions jsonb not null default '[]', journal text,
+  updated_at timestamptz,
+  unique (member_id, kind, ref_id)
+);
+
+create table campaigns (
+  id text primary key, brand_id text not null, title text not null, month text not null, theme text, summary text,
+  launch_day int not null, status text not null, publish_at timestamptz, access text not null, cover_file_id text,
+  featured jsonb not null, rebrand jsonb not null, positioning jsonb not null, sales_page jsonb not null,
+  emails jsonb not null, social jsonb not null, lead_magnet jsonb not null, bonuses jsonb not null,
+  checklist jsonb not null, calendar jsonb not null,
+  is_sample boolean, created_at timestamptz, updated_at timestamptz
+);
+create index on campaigns (brand_id, month);
+
+create table build_days (
+  id text primary key, brand_id text not null, title text not null, month text not null, theme text, outcome text,
+  starts_at timestamptz not null, timezone text, format text, host text, location text,
+  join_url text, replay_url text, capacity int,
+  status text not null, publish_at timestamptz, access text not null, cover_file_id text,
+  agenda jsonb not null, materials jsonb not null, checklist jsonb not null, actions jsonb not null, community jsonb not null,
+  is_sample boolean, created_at timestamptz, updated_at timestamptz
+);
+create index on build_days (brand_id, starts_at);
+```
+
+Policies follow the same pattern as section 4: campaigns and Build Days are readable when live and the member's tier for the brand is at least `access` (the join link only for those members); `lab_profiles` and `lab_progress` are readable and writable only by their `member_id`; the owner bypasses all. File references (`featured.files`, `materials`, session resources) point at `member_files` rows and should be served with short-lived signed URLs.
+
+The BYLDITY handoff (`src/lib/integrations/byldity.ts`) needs no tables yet; when a connector is added, store each app's credentials server-side only and log pushes (campaign id, app, external id, time) in a small `integration_log` table.

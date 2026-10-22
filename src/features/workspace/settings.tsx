@@ -291,7 +291,7 @@ function DataSection() {
           <Eraser className="size-4" /> Start clean: remove all sample content
         </p>
         <p className="text-xs text-muted-foreground">
-          Removes the sample project and sample brand kit, and the sample products, drops, courses and resources in every membership. Your own projects, documents, products, settings and AI key are kept, and a project you copied from the sample stays. Samples won&apos;t be added again — you can bring the sample project back with the button above, or a membership&apos;s samples from its Admin → Data page.
+          Removes the sample project and sample brand kit, the sample products, drops, courses and resources in every membership, and PLR Profit Lab&apos;s sample campaigns, Build Days and sample members. Your own projects, documents, products, settings and AI key are kept, and a project you copied from the sample stays. Samples won&apos;t be added again — you can bring the sample project back with the button above, or a membership&apos;s samples from its Admin → Data page.
         </p>
         <Button
           variant="outline"

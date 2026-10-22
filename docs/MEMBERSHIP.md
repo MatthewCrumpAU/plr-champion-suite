@@ -1,4 +1,4 @@
-# Memberships: PLR Champion and PLRforIM (Phases 2–3)
+# Memberships: PLR Champion, PLRforIM and PLR Profit Lab (Phases 2–4)
 
 The membership areas are the customer-facing side of the ecosystem: premium member libraries with downloads, training, resources and the studio tools, plus an owner-only admin for loading products and organising monthly releases.
 
@@ -6,10 +6,11 @@ The membership areas are the customer-facing side of the ecosystem: premium memb
 | --- | --- | --- | --- |
 | **PLR Champion** | `/m/plr-champion` | Indigo and gold, crown mark | General-niche PLR (health, money, family, home, business…), *Monthly Product Drops* |
 | **PLRforIM** | `/m/plrforim` | Teal and orange, growth-chart mark | Internet-marketing PLR (list building, affiliate, traffic, social, launches), *Monthly IM Drops* |
+| **PLR Profit Lab** | `/m/plr-profit-lab` | Green and gold, path-and-flag mark | No product library — the 90-Day Profit Path, Monthly Profit Campaign Drops and PLR Profit Build Days. See [PROFIT-LAB.md](PROFIT-LAB.md) |
 
 Both use the same components and services, but each brand has its **own** products, categories, drops, training, resources, downloads, favourites, progress, backups and customers. The studio sidebar's **Memberships** section links to both. Like every other page they sit behind the owner login — there is no public sign-up, subscription, payment or member account system yet.
 
-Everything below applies to both brands (swap `plr-champion` for `plrforim` in the addresses).
+Everything below applies to PLR Champion and PLRforIM (swap `plr-champion` for `plrforim` in the addresses). PLR Profit Lab shares the shell, View as, Members & access, Training, Resources and Data & backup, but replaces the library areas with its own modules — they're described in [PROFIT-LAB.md](PROFIT-LAB.md). Each brand only shows the areas it offers; opening another brand's area shows a "Not part of …" page.
 
 ---
 
@@ -43,7 +44,7 @@ The brand button next to **View as** switches between PLR Champion and PLRforIM 
 ### Members & access (`/admin/access`) — prepared for bundle buyers
 Shows every account in this browser and what it can open on each brand, and why:
 - **Own membership** — the tier bought on that brand.
-- **Bundle** — the *PLR Champion + PLRforIM bundle* grants premium on both.
+- **Bundle** — the *PLR Champion + PLRforIM bundle* grants premium on both; the *Complete PLR Business bundle* grants premium on all three brands including PLR Profit Lab.
 - **Linked account** — the same person's account on the other brand; linked accounts share access both ways (one hop).
 
 The highest tier wins. **New test profile** creates a local, sign-in-less profile (name, email label, tier per brand, bundle, links). **View as** on a profile shows the areas exactly as that customer would see them — a PLRforIM-only buyer gets a “No PLR Champion membership” page on PLR Champion with a link to PLRforIM. Nothing here signs anyone in; when memberships go live, real accounts use the same model (`src/lib/membership/entitlements.ts`).

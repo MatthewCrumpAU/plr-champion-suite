@@ -26,6 +26,12 @@ export const BUNDLES: BundleDefinition[] = [
     description: "Premium access to both brands for one purchase. Buyers get an account on each brand, linked together.",
     grants: { "plr-champion": "premium", plrforim: "premium" },
   },
+  {
+    id: "plr-business-complete",
+    name: "Complete PLR Business bundle",
+    description: "Premium access to PLR Champion, PLRforIM and PLR Profit Lab — the content, the software and the implementation programme.",
+    grants: { "plr-champion": "premium", plrforim: "premium", "plr-profit-lab": "premium" },
+  },
 ];
 
 const RANK: Record<AccessTier, number> = { free: 0, member: 1, premium: 2 };

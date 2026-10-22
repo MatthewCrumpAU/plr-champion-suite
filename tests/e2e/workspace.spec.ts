@@ -112,6 +112,9 @@ test.describe("Workspace", () => {
     await expect(page.getByTestId("result-count")).toHaveText("0 results", { timeout: 60_000 });
     await page.goto("/m/plrforim/library");
     await expect(page.getByTestId("result-count")).toHaveText("0 results", { timeout: 60_000 });
+    await page.goto("/m/plr-profit-lab/campaigns");
+    await expect(page.getByText("No campaigns yet")).toBeVisible({ timeout: 60_000 });
+    await page.goto("/m/plrforim/library");
     // Reloading doesn't bring them back.
     await page.reload();
     await expect(page.getByTestId("result-count")).toHaveText("0 results", { timeout: 60_000 });

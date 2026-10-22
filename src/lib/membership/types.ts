@@ -1,13 +1,13 @@
 /**
- * Membership data model (PLR Champion, PLRforIM — and later PLR Profit Lab).
+ * Membership data model (PLR Champion, PLRforIM and PLR Profit Lab).
  *
  * Every record carries a `brandId` so brands keep separate libraries, categories, releases and
  * customer access while sharing one codebase. Each interface maps 1:1 to a future Supabase table
  * (see docs/DATABASE-MIGRATION.md → "Membership tables"); ids are opaque strings and all dates are ISO.
  */
 
-export type BrandId = "plr-champion" | "plrforim";
-export const BRAND_IDS: BrandId[] = ["plr-champion", "plrforim"];
+export type BrandId = "plr-champion" | "plrforim" | "plr-profit-lab";
+export const BRAND_IDS: BrandId[] = ["plr-champion", "plrforim", "plr-profit-lab"];
 
 /** Access tiers inside a brand. Higher tiers include everything below them. */
 export type AccessTier = "free" | "member" | "premium";
@@ -282,6 +282,8 @@ export interface MemberAccount {
   source: "owner" | "purchase" | "bundle" | "manual" | "test";
   /** Optional note (test profiles describe what they're for). */
   note?: string;
+  /** Seeded sample profile (removed with the sample content). */
+  isSample?: boolean;
   createdAt: string;
   updatedAt: string;
 }
